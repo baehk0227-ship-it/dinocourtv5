@@ -1,0 +1,3968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-F8WDGFPQ2K"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-F8WDGFPQ2K', { cookie_flags: 'SameSite=None;Secure' });
+</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>룡적재판 (DINO COURT)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.2/dist/galmuri.css" media="print" onload="this.media='all'" />
+  <style>
+    :root {
+      --night: #161221;
+      --night-dot: #2a2140;
+      --plum: #241c33;
+      --ink: #0f0c17;
+      --paper: #f4ecd8;
+      --gold: #e3a93b;
+      --red: #d8343a;
+      --judge: #a9aeb7;
+      --lawyer: #7da2d8;
+      --client: #b39ae0;
+      --dialog-bg: #141a33;
+      --objection-blue: #1d48a8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: none;
+      -moz-osx-font-smoothing: grayscale;
+      font-smooth: never;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    input, textarea {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100dvh;
+      background-color: var(--night);
+      background-image: radial-gradient(var(--night-dot) 1.5px, transparent 1.5px);
+      background-size: 14px 14px;
+      color: var(--paper);
+      font-family: 'Galmuri11', 'DungGeunMo', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 6px 8px 8px;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 440px;
+      gap: 7px;
+    }
+
+    /* 9:16 세로 게임 화면 */
+    .game-frame {
+      position: relative;
+      width: min(100vw - 16px, 430px, calc((100dvh - 102px) * 9 / 16));
+      min-width: 280px;
+      aspect-ratio: 9 / 16;
+      background: var(--ink);
+      border: 4px solid var(--ink);
+      outline: 3px solid var(--gold);
+      box-shadow:
+        0 0 0 6px var(--ink),
+        0 18px 36px rgba(0, 0, 0, 0.85);
+      overflow: hidden;
+      container-type: inline-size;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    /* 화면 흔들림 애니메이션 */
+    @keyframes screen-shake {
+      0% { transform: translate(0, 0); }
+      20% { transform: translate(-2cqw, 1.5cqw); }
+      40% { transform: translate(2cqw, -1.5cqw); }
+      60% { transform: translate(-1.5cqw, -1cqw); }
+      80% { transform: translate(1.5cqw, 1cqw); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .game-frame.shake {
+      animation: screen-shake 0.35s steps(4) 1;
+    }
+
+    /* 상단 법정 장면 영역 (약 67% 높이) */
+    .scene-area {
+      position: relative;
+      width: 100%;
+      height: 67%;
+      background: #1a1528;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    #courtCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* 의사봉 "땅!" 팝업 */
+    .gavel-pop-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    @keyframes bang-pop {
+      0% { transform: scale(0.4) rotate(-8deg); opacity: 1; }
+      40% { transform: scale(1.18) rotate(6deg); opacity: 1; }
+      80% { transform: scale(1) rotate(0deg); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0; }
+    }
+
+    .bang-text {
+      position: absolute;
+      font-size: 9.5cqw;
+      font-weight: 700;
+      color: var(--gold);
+      text-shadow:
+        -2px -2px 0 var(--ink),
+         2px -2px 0 var(--ink),
+        -2px  2px 0 var(--ink),
+         2px  2px 0 var(--ink),
+         0px  4px 0 var(--red);
+      animation: bang-pop 0.55s steps(4) forwards;
+      white-space: nowrap;
+    }
+
+    /* 상단 HUD */
+    .hud-bar {
+      position: absolute;
+      top: 2.5cqw;
+      left: 2.5cqw;
+      right: 2.5cqw;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 2cqw;
+      z-index: 12;
+      pointer-events: none;
+    }
+
+    .hud-box {
+      background: rgba(15, 12, 23, 0.78);
+      border: 1px solid rgba(244, 236, 216, 0.65);
+      padding: 1.6cqw 2.2cqw;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+    }
+
+    .hud-step-dots {
+      display: flex;
+      gap: 1.2cqw;
+      margin-bottom: 1cqw;
+    }
+
+    .step-sq {
+      width: 2.4cqw;
+      height: 2.4cqw;
+      background: rgba(244, 236, 216, 0.25);
+      border: 1px solid rgba(244, 236, 216, 0.4);
+    }
+
+    .step-sq.done {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .step-sq.current {
+      background: #ffffff;
+      border: 1.5px solid var(--gold);
+      box-shadow: 0 0 0 1px var(--ink);
+    }
+
+    .hud-step-label {
+      font-size: 3cqw;
+      color: var(--paper);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .hud-case-card {
+      text-align: right;
+      max-width: 54cqw;
+    }
+
+    .hud-case-no {
+      font-size: 2.7cqw;
+      color: rgba(244, 236, 216, 0.8);
+      letter-spacing: 0.02em;
+    }
+
+    .hud-case-title {
+      font-size: 3.3cqw;
+      font-weight: 700;
+      color: var(--gold);
+      margin-top: 0.5cqw;
+      word-break: keep-all;
+      line-height: 1.25;
+    }
+
+    .hud-demo-chip {
+      display: inline-block;
+      margin-top: 1cqw;
+      background: var(--red);
+      color: var(--paper);
+      font-size: 2.5cqw;
+      font-weight: 700;
+      padding: 0.4cqw 1.4cqw;
+      border: 1px solid var(--paper);
+    }
+
+    /* 하단 대사창 (약 33% 높이) */
+    .dialog-area {
+      position: relative;
+      width: 100%;
+      height: 33%;
+      background: var(--dialog-bg);
+      border-top: 3px solid var(--paper);
+      padding: 5.2cqw 4cqw 3.5cqw;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    /* 안쪽 이중선 */
+    .dialog-area::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(244, 236, 216, 0.38);
+      pointer-events: none;
+    }
+
+    /* 왼쪽 위 이름표 */
+    .speaker-tag {
+      position: absolute;
+      top: -3.6cqw;
+      left: 3.5cqw;
+      background: var(--judge);
+      color: var(--ink);
+      font-size: 3.4cqw;
+      font-weight: 700;
+      padding: 0.9cqw 2.8cqw;
+      border: 2px solid var(--ink);
+      outline: 2px solid var(--paper);
+      box-shadow: 0 3px 0 var(--ink);
+      z-index: 14;
+      letter-spacing: 0.02em;
+    }
+
+    .dialog-text {
+      position: relative;
+      font-size: 3.9cqw;
+      line-height: 1.55;
+      color: var(--paper);
+      word-break: keep-all;
+      z-index: 2;
+      min-height: 12cqw;
+    }
+
+    @keyframes blink-arrow {
+      0%, 49% { transform: translateY(0); opacity: 1; }
+      50%, 100% { transform: translateY(1cqw); opacity: 0.35; }
+    }
+
+    .next-indicator {
+      position: absolute;
+      right: 3.5cqw;
+      bottom: 2.8cqw;
+      color: var(--gold);
+      font-size: 4cqw;
+      animation: blink-arrow 0.7s steps(2) infinite;
+      z-index: 3;
+    }
+
+    /* 공통 버튼 스타일 */
+    .btn-primary {
+      background: var(--gold);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 3.9cqw;
+      font-weight: 700;
+      padding: 2.4cqw 4.5cqw;
+      border: 3px solid var(--ink);
+      outline: 2px solid var(--paper);
+      box-shadow: 0 1.2cqw 0 var(--ink);
+      cursor: pointer;
+      text-align: center;
+      transition: transform 0.05s steps(1);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.06);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0.8cqw);
+      box-shadow: 0 0.4cqw 0 var(--ink);
+    }
+
+    .btn-secondary {
+      background: rgba(36, 28, 51, 0.85);
+      color: var(--paper);
+      font-family: inherit;
+      font-size: 3.5cqw;
+      font-weight: 700;
+      padding: 2cqw 3.8cqw;
+      border: 1.5px solid rgba(244, 236, 216, 0.55);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(244, 236, 216, 0.14);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(0.5cqw);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    .link-btn:focus-visible {
+      outline: 2.5px solid var(--red) !important;
+      outline-offset: 2px;
+    }
+
+    /* 0) 타이틀 화면 오버레이 */
+    .title-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(15, 12, 23, 0.12) 0%,
+        rgba(15, 12, 23, 0.54) 38%,
+        rgba(15, 12, 23, 0.95) 72%,
+        rgba(15, 12, 23, 1) 100%
+      );
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 6cqw 5cqw 7cqw;
+      text-align: center;
+      cursor: default;
+    }
+
+    .title-logo-kr {
+      font-size: 13.5cqw;
+      font-weight: 700;
+      color: var(--paper);
+      letter-spacing: 0.06em;
+      text-shadow:
+        -3px -3px 0 var(--ink),
+         3px -3px 0 var(--ink),
+        -3px  3px 0 var(--ink),
+         3px  3px 0 var(--ink),
+         0px  6px 0 var(--red),
+         4px  6px 0 var(--ink);
+      line-height: 1.05;
+    }
+
+    .title-logo-en {
+      font-size: 3.6cqw;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.36em;
+      margin-top: 1.5cqw;
+      margin-bottom: 3.5cqw;
+      text-shadow: 0 2px 0 var(--ink);
+    }
+
+    .title-desc {
+      font-size: 3.5cqw;
+      line-height: 1.5;
+      color: var(--paper);
+      margin-bottom: 4cqw;
+      word-break: keep-all;
+      max-width: 86cqw;
+    }
+
+    .title-steps-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.2cqw;
+      margin-bottom: 5cqw;
+    }
+
+    .title-step-chip {
+      background: var(--plum);
+      border: 1px solid rgba(244, 236, 216, 0.45);
+      color: var(--paper);
+      font-size: 2.7cqw;
+      padding: 0.9cqw 1.8cqw;
+    }
+
+    .title-actions {
+      display: flex;
+      flex-direction: column;
+      width: 82%;
+      gap: 2.4cqw;
+    }
+
+    /* 사인업 홍보 광고탭 (타이틀 상단 & 판결문 하단) */
+    .promo-ad-tab {
+      width: 100%;
+      background: var(--plum);
+      border: 2.5px solid var(--ink);
+      outline: 2px solid var(--gold);
+      box-shadow:
+        0 0 0 4px var(--ink),
+        0 6px 14px rgba(0, 0, 0, 0.78);
+      padding: 2.2cqw 2.8cqw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2.2cqw;
+      text-align: left;
+      position: relative;
+      z-index: 2;
+    }
+
+    .promo-ad-tab::before {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border: 1px solid rgba(244, 236, 216, 0.3);
+      pointer-events: none;
+    }
+
+    .promo-ad-top {
+      margin-top: -3.2cqw;
+      margin-bottom: auto;
+    }
+
+    .promo-ad-bottom {
+      margin-top: 2cqw;
+    }
+
+    .promo-ad-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7cqw;
+      min-width: 0;
+      z-index: 2;
+    }
+
+    .promo-ad-headline {
+      font-size: 3.1cqw;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      text-shadow: 0 1.5px 0 var(--ink);
+      word-break: keep-all;
+    }
+
+    .promo-ad-subline {
+      font-size: 2.75cqw;
+      font-weight: 700;
+      color: var(--paper);
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      word-break: keep-all;
+    }
+
+    .promo-urgent-chip {
+      display: inline-block;
+      background: var(--red);
+      color: var(--paper);
+      font-size: 2.45cqw;
+      font-weight: 700;
+      padding: 0.25cqw 1.2cqw;
+      border: 1.5px solid var(--ink);
+      box-shadow: 0 1px 0 var(--ink);
+      margin-right: 0.8cqw;
+      vertical-align: middle;
+      letter-spacing: 0;
+      animation: urgent-pulse 1.1s steps(2) infinite;
+    }
+
+    @keyframes urgent-pulse {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.04); filter: brightness(1.15); }
+    }
+
+    .promo-ad-btn {
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gold);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 2.9cqw;
+      font-weight: 700;
+      padding: 1.8cqw 2.8cqw;
+      border: 2.5px solid var(--ink);
+      outline: 1.5px solid var(--paper);
+      box-shadow: 0 0.9cqw 0 var(--ink);
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.05s steps(1);
+    }
+
+    .promo-ad-btn:hover {
+      filter: brightness(1.06);
+    }
+
+    .promo-ad-btn:active {
+      transform: translateY(0.6cqw);
+      box-shadow: 0 0.3cqw 0 var(--ink);
+    }
+
+    /* 입력 폼 / 선택지 드로어 (대사창이 위로 커지는 형태) */
+    .form-drawer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--dialog-bg);
+      border-top: 3px solid var(--paper);
+      padding: 5.5cqw 4.2cqw 4.2cqw;
+      z-index: 22;
+      display: flex;
+      flex-direction: column;
+      gap: 2.6cqw;
+      box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.8);
+      cursor: default;
+    }
+
+    .form-drawer::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(244, 236, 216, 0.35);
+      pointer-events: none;
+    }
+
+    .names-row {
+      display: flex;
+      align-items: center;
+      gap: 2cqw;
+      font-size: 3.5cqw;
+      font-weight: 700;
+      z-index: 2;
+      flex-wrap: wrap;
+    }
+
+    .name-input {
+      width: 22cqw;
+      background: var(--ink);
+      color: var(--gold);
+      border: 2px solid var(--paper);
+      font-family: inherit;
+      font-size: 3.5cqw;
+      font-weight: 700;
+      padding: 1.2cqw 1.8cqw;
+      text-align: center;
+    }
+
+    .story-textarea {
+      width: 100%;
+      height: 30cqw;
+      background: var(--ink);
+      color: var(--paper);
+      border: 2px solid rgba(244, 236, 216, 0.75);
+      font-family: inherit;
+      font-size: 3.4cqw;
+      line-height: 1.5;
+      padding: 2.4cqw;
+      resize: none;
+      z-index: 2;
+    }
+
+    .form-helper-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 2.8cqw;
+      color: rgba(244, 236, 216, 0.8);
+      z-index: 2;
+      gap: 2cqw;
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--gold);
+      font-family: inherit;
+      font-size: 2.8cqw;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0.4cqw 0;
+      text-align: left;
+    }
+
+    .choice-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 2.4cqw;
+      z-index: 2;
+      margin-top: 1cqw;
+    }
+
+    /* 과실 비율 배너 (위에서 툭 떨어짐) */
+    @keyframes drop-in {
+      0% { transform: translateY(-110%); opacity: 0; }
+      70% { transform: translateY(4%); opacity: 1; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .ratio-banner-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 12, 23, 0.76);
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4cqw;
+    }
+
+    .ratio-banner {
+      width: 100%;
+      background: var(--plum);
+      border: 3px solid var(--ink);
+      outline: 3px solid var(--gold);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.9);
+      padding: 4.8cqw 4.2cqw;
+      text-align: center;
+      animation: drop-in 0.35s steps(5) forwards;
+    }
+
+    .ratio-banner-title {
+      font-size: 4.2cqw;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.28em;
+      margin-bottom: 3.2cqw;
+    }
+
+    .ratio-scores {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 2.8cqw;
+      gap: 2cqw;
+    }
+
+    .ratio-side {
+      flex: 1;
+    }
+
+    .ratio-side.left {
+      text-align: left;
+    }
+
+    .ratio-side.right {
+      text-align: right;
+    }
+
+    .ratio-who {
+      font-size: 3.3cqw;
+      color: var(--paper);
+      margin-bottom: 0.8cqw;
+    }
+
+    .ratio-num {
+      font-size: 7.5cqw;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .ratio-side.left .ratio-num {
+      color: #ff6b70;
+    }
+
+    .ratio-side.right .ratio-num {
+      color: var(--client);
+    }
+
+    .ratio-diff {
+      font-size: 2.8cqw;
+      color: var(--gold);
+      margin-top: 1cqw;
+    }
+
+    .ratio-bar-track {
+      width: 100%;
+      height: 5.2cqw;
+      background: var(--client);
+      border: 2.5px solid var(--ink);
+      outline: 1.5px solid var(--paper);
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 3.4cqw;
+    }
+
+    .ratio-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--red);
+      border-right: 2px solid var(--ink);
+      transition: width 1s steps(10);
+    }
+
+    .ratio-continue-hint {
+      font-size: 3cqw;
+      color: rgba(244, 236, 216, 0.82);
+    }
+
+    /* "이의 있음!" 전체 화면 연출 */
+    @keyframes objection-flash {
+      0% { background-color: #ffffff; }
+      20% { background-color: #ffffff; }
+      25% { background-color: var(--objection-blue); }
+      100% { background-color: var(--objection-blue); }
+    }
+
+    @keyframes burst-pop {
+      0% { transform: scale(0.25) rotate(-12deg); }
+      45% { transform: scale(1.15) rotate(-5deg); }
+      75% { transform: scale(0.95) rotate(-7deg); }
+      100% { transform: scale(1.02) rotate(-6deg); }
+    }
+
+    .objection-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 35;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: objection-flash 1.5s steps(4) forwards;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* 방사형 집중선 */
+    .objection-Overlay-lines {
+      position: absolute;
+      inset: -40%;
+      background: repeating-conic-gradient(
+        from 0deg,
+        rgba(255, 255, 255, 0.22) 0deg 4deg,
+        transparent 4deg 13deg
+      );
+    }
+
+    .objection-burst {
+      position: relative;
+      width: 88%;
+      aspect-ratio: 16 / 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: burst-pop 0.35s steps(4) forwards;
+    }
+
+    .objection-burst svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 6px 0 var(--ink));
+    }
+
+    .objection-text {
+      position: relative;
+      z-index: 2;
+      font-size: 12.5cqw;
+      font-weight: 700;
+      color: var(--red);
+      letter-spacing: 0.04em;
+      text-shadow:
+        -3px -3px 0 var(--ink),
+         3px -3px 0 var(--ink),
+        -3px  3px 0 var(--ink),
+         3px  3px 0 var(--ink),
+         0px  5px 0 var(--ink);
+      transform: rotate(-4deg);
+      white-space: nowrap;
+    }
+
+    /* 판결문 모달 화면 (릴스 엔딩 컷용) */
+    .verdict-sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 12, 23, 0.85);
+      z-index: 28;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3.5cqw 3.5cqw 3.2cqw;
+      cursor: default;
+      overflow-y: auto;
+    }
+
+    .verdict-paper {
+      background: var(--paper);
+      color: var(--ink);
+      border: 3px solid var(--ink);
+      outline: 2.5px solid var(--gold);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.85);
+      padding: 4.2cqw 4cqw 3.8cqw;
+      animation: drop-in 0.35s steps(5) forwards;
+      display: flex;
+      flex-direction: column;
+      gap: 2.4cqw;
+    }
+
+    .verdict-header {
+      text-align: center;
+      font-size: 6.2cqw;
+      font-weight: 700;
+      letter-spacing: 0.45em;
+      padding-left: 0.45em;
+      color: var(--ink);
+      margin-bottom: 0.5cqw;
+    }
+
+    .verdict-meta-table {
+      border-top: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      padding: 1.8cqw 0;
+      display: grid;
+      grid-template-columns: 22cqw 1fr;
+      row-gap: 1.1cqw;
+      column-gap: 2cqw;
+      font-size: 3.1cqw;
+      line-height: 1.35;
+    }
+
+    .verdict-meta-label {
+      font-weight: 700;
+      color: #4a3d33;
+    }
+
+    .verdict-meta-val {
+      font-weight: 700;
+      color: var(--ink);
+      word-break: keep-all;
+    }
+
+    .verdict-section-title {
+      text-align: center;
+      font-size: 3.6cqw;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      padding-left: 0.3em;
+      background: rgba(15, 12, 23, 0.08);
+      padding-top: 0.7cqw;
+      padding-bottom: 0.7cqw;
+      border-top: 1px solid rgba(15, 12, 23, 0.25);
+      border-bottom: 1px solid rgba(15, 12, 23, 0.25);
+    }
+
+    .verdict-main-line {
+      font-size: 3.5cqw;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.45;
+      color: #8f1d22;
+      padding: 0.8cqw 1cqw;
+      word-break: keep-all;
+    }
+
+    .verdict-advice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4cqw;
+      font-size: 3cqw;
+      line-height: 1.42;
+    }
+
+    .verdict-advice-item {
+      word-break: keep-all;
+    }
+
+    .verdict-advice-item strong {
+      color: #5b3817;
+    }
+
+    .verdict-Sign-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 2.5cqw;
+      margin-top: 1.2cqw;
+      padding-top: 1.4cqw;
+      border-top: 1px dashed rgba(15, 12, 23, 0.3);
+    }
+
+    .verdict-sign-text {
+      font-size: 3.4cqw;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .verdict-stamp {
+      width: 7.8cqw;
+      height: 7.8cqw;
+      border: 2.5px solid var(--red);
+      color: var(--red);
+      font-size: 4.4cqw;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(-8deg);
+      background: rgba(216, 52, 58, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(216, 52, 58, 0.4);
+    }
+
+    .verdict-share-actions {
+      display: flex;
+      gap: 2cqw;
+      margin-top: 2cqw;
+    }
+
+    .btn-verdict-util {
+      flex: 1;
+      background: var(--ink);
+      color: var(--gold);
+      font-family: inherit;
+      font-size: 3.15cqw;
+      font-weight: 700;
+      padding: 2cqw 2.2cqw;
+      border: 2px solid var(--gold);
+      box-shadow: 0 0.9cqw 0 #07050b;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: transform 0.05s steps(1);
+    }
+
+    .btn-verdict-util:hover {
+      background: #1d162b;
+      color: var(--paper);
+    }
+
+    .btn-verdict-util:active {
+      transform: translateY(0.6cqw);
+      box-shadow: 0 0.3cqw 0 #07050b;
+    }
+
+    .verdict-sheet-actions {
+      display: flex;
+      gap: 2.4cqw;
+      margin-top: 1.8cqw;
+    }
+
+    .verdict-sheet-actions button {
+      flex: 1;
+    }
+
+    /* 판결문 이미지 저장 미리보기 모달 */
+    .verdict-img-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 12, 23, 0.92);
+      z-index: 45;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4cqw;
+      cursor: default;
+    }
+
+    .verdict-img-modal {
+      width: 100%;
+      max-height: 92%;
+      background: var(--plum);
+      border: 3px solid var(--paper);
+      outline: 2px solid var(--gold);
+      padding: 3.5cqw;
+      display: flex;
+      flex-direction: column;
+      gap: 2.2cqw;
+      overflow-y: auto;
+    }
+
+    .verdict-img-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--gold);
+      font-size: 3.5cqw;
+      font-weight: 700;
+    }
+
+    .verdict-img-preview-wrap {
+      width: 100%;
+      background: var(--ink);
+      border: 2px solid var(--gold);
+      padding: 1.5cqw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .verdict-img-preview {
+      width: 100%;
+      height: auto;
+      max-height: 54dvh;
+      object-fit: contain;
+      display: block;
+      user-select: auto !important;
+      -webkit-user-select: auto !important;
+      -webkit-touch-callout: default !important;
+      pointer-events: auto !important;
+      cursor: pointer;
+    }
+
+    .verdict-img-hint {
+      font-size: 2.8cqw;
+      color: var(--paper);
+      text-align: center;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+
+    /* 픽셀 토스트 알림 */
+    .court-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 8cqw;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--gold);
+      border: 2px solid var(--gold);
+      outline: 2px solid var(--ink);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.85);
+      padding: 2cqw 3.4cqw;
+      font-size: 3cqw;
+      font-weight: 700;
+      z-index: 50;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* 판결문 닫은 뒤 다시 열기 플로팅 버튼 */
+    .reopen-verdict-bar {
+      position: absolute;
+      bottom: 35%;
+      right: 3cqw;
+      z-index: 20;
+    }
+
+    /* 하단 컨트롤 바 (게임 화면 밖 아래쪽) */
+    .bottom-controls {
+      width: min(100vw - 16px, 430px, calc((100dvh - 102px) * 9 / 16));
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .control-buttons {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .ctrl-btn {
+      flex: 1;
+      background: var(--plum);
+      color: var(--paper);
+      border: 1.5px solid rgba(244, 236, 216, 0.45);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 6px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .ctrl-btn.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: inset 0 0 0 1px var(--gold);
+    }
+
+    .footer-notice {
+      font-size: 10.5px;
+      line-height: 1.45;
+      color: rgba(244, 236, 216, 0.68);
+      text-align: center;
+      word-break: keep-all;
+    }
+
+    /* API 키 모달 (선택적 설정용) */
+    .api-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 12, 23, 0.88);
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5cqw;
+      cursor: default;
+    }
+
+    .api-modal {
+      width: 100%;
+      background: var(--plum);
+      border: 3px solid var(--paper);
+      outline: 2px solid var(--gold);
+      padding: 4.5cqw;
+      display: flex;
+      flex-direction: column;
+      gap: 2.8cqw;
+    }
+
+    .api-modal h3 {
+      font-size: 4cqw;
+      color: var(--gold);
+    }
+
+    .api-modal p {
+      font-size: 3cqw;
+      line-height: 1.45;
+      color: var(--paper);
+      word-break: keep-all;
+    }
+
+    .api-key-input {
+      width: 100%;
+      background: var(--ink);
+      color: var(--paper);
+      border: 2px solid var(--paper);
+      font-family: inherit;
+      font-size: 3.3cqw;
+      padding: 2cqw;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 움직임 줄이기 설정 사용자 배려 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- 9:16 세로 게임 화면 -->
+    <main class="game-frame" id="gameFrame" tabindex="0" aria-label="룡적재판 게임 화면">
+      <!-- 1. 법정 장면 픽셀 캔버스 (180x220) -->
+      <div class="scene-area">
+        <canvas id="courtCanvas" width="180" height="220"></canvas>
+        <div class="gavel-pop-layer" id="gavelPopLayer"></div>
+
+        <!-- 2. 상단 HUD -->
+        <div class="hud-bar" id="hudBar">
+          <div class="hud-box">
+            <div class="hud-step-dots" id="hudStepDots">
+              <div class="step-sq"></div>
+              <div class="step-sq"></div>
+              <div class="step-sq"></div>
+              <div class="step-sq"></div>
+              <div class="step-sq"></div>
+            </div>
+            <div class="hud-step-label" id="hudStepLabel">1/5 사건 접수</div>
+          </div>
+
+          <div class="hud-box hud-case-card">
+            <div class="hud-case-no" id="hudCaseNo">2026룡단4821</div>
+            <div class="hud-case-title" id="hudCaseTitle">접수 대기</div>
+            <div class="hud-demo-chip hidden" id="hudDemoChip">체험판 · 예시 사건</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 하단 대사창 -->
+      <section class="dialog-area" id="dialogArea">
+        <div class="speaker-tag" id="speakerTag">제미노 판사</div>
+        <div class="dialog-text" id="dialogText"></div>
+        <div class="next-indicator hidden" id="nextIndicator">▼</div>
+      </section>
+
+      <!-- 판결문 닫기 후 다시 보기 버튼 -->
+      <div class="reopen-verdict-bar hidden" id="reopenVerdictBar">
+        <button type="button" class="btn-primary" id="btnReopenVerdict" style="font-size:3.2cqw;padding:1.8cqw 3cqw;">📜 판결문 보기</button>
+      </div>
+
+      <!-- 0) 타이틀 화면 -->
+      <section class="title-overlay" id="titleOverlay">
+        <div class="promo-ad-tab promo-ad-top" role="region" aria-label="대학생 구글 Gemini Plus 프로모션">
+          <div class="promo-ad-copy">
+            <div class="promo-ad-headline"><span class="promo-urgent-chip">마감 임박</span>대학생 제미나이 1년 0원</div>
+            <div class="promo-ad-subline">곧 혜택 종료! 1분 만에 무료로 받기</div>
+          </div>
+          <a
+            href="https://goo.gle/hufsseoul"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="promo-ad-btn"
+            id="btnPromoSignupTop"
+          >무료 받기 ▶</a>
+        </div>
+        <h1 class="title-logo-kr">룡적재판</h1>
+        <div class="title-logo-en">DINO COURT</div>
+        <p class="title-desc">억울한 사랑싸움, 공룡 법정이 과실 비율로 가려드립니다.</p>
+        <div class="title-steps-row">
+          <span class="title-step-chip">사건 접수</span>
+          <span class="title-step-chip">1차 판결</span>
+          <span class="title-step-chip">반론</span>
+          <span class="title-step-chip">이의 있음!</span>
+          <span class="title-step-chip">최종 판결</span>
+        </div>
+        <div class="title-actions">
+          <button type="button" class="btn-primary" id="btnStartGame">개정하기 ▶</button>
+          <button type="button" class="btn-secondary" id="btnStartDemo">체험판(예시 사건)으로 시작</button>
+        </div>
+      </section>
+
+      <!-- 1) 사건 접수 입력 폼 드로어 -->
+      <section class="form-drawer hidden" id="intakeDrawer" aria-label="사건 접수 입력 폼">
+        <div class="speaker-tag" style="background: var(--client);">사건 접수처</div>
+        <div class="names-row">
+          <span>나는</span>
+          <input type="text" id="inputMeName" class="name-input" maxlength="6" value="나" aria-label="내 호칭" />
+          <span>상대는</span>
+          <input type="text" id="inputOtherName" class="name-input" maxlength="6" value="남친" aria-label="상대 호칭" />
+        </div>
+        <textarea id="inputStory" class="story-textarea" maxlength="800" placeholder="누가 누구에게 무엇을 했는지 억울한 사연을 적어주세요 (최대 800자)"></textarea>
+        <div class="form-helper-row">
+          <button type="button" class="link-btn" id="btnClearExample">예시 사연이 들어 있어요 · 지우고 새로 쓰기</button>
+          <span id="storyCharCount">0 / 800</span>
+        </div>
+        <button type="button" class="btn-primary" id="btnSubmitStory">진술 완료 ▶</button>
+      </section>
+
+      <!-- 3) 반론 선택지 & 반론 입력 드로어 -->
+      <section class="form-drawer hidden" id="rebuttalChoiceDrawer" aria-label="반론 여부 선택">
+        <div class="speaker-tag" id="rebuttalChoiceTag" style="background: var(--client);">나 (신청인)</div>
+        <div class="dialog-text" style="min-height:auto;margin-bottom:1cqw;">신청인, 이 판결에 반론이 있는가?</div>
+        <div class="choice-stack">
+          <button type="button" class="btn-primary" id="btnChooseObjection">▶ 이의를 제기한다</button>
+          <button type="button" class="btn-secondary" id="btnChooseAccept">▶ 판결을 받아들인다</button>
+        </div>
+      </section>
+
+      <section class="form-drawer hidden" id="rebuttalInputDrawer" aria-label="반론 진술 입력 폼">
+        <div class="speaker-tag" id="rebuttalInputTag" style="background: var(--client);">나 (신청인)</div>
+        <div class="names-row" style="justify-content:space-between;">
+          <span>나의 반론을 진술하라.</span>
+          <span style="font-size:2.8cqw;color:var(--gold);font-weight:400;">솔직하게 쓸수록 판결이 정확해져요</span>
+        </div>
+        <textarea id="inputRebuttal" class="story-textarea" maxlength="400" placeholder="판사님, 그건 이렇습니다! (최대 400자)"></textarea>
+        <div class="form-helper-row">
+          <button type="button" class="link-btn" id="btnClearRebuttal">내용 지우고 새로 쓰기</button>
+          <span id="rebuttalCharCount">0 / 400</span>
+        </div>
+        <button type="button" class="btn-primary" id="btnSubmitRebuttal">반론 제출 ▶</button>
+      </section>
+
+      <!-- 오류 발생 시 선택지 드로어 -->
+      <section class="form-drawer hidden" id="errorChoiceDrawer" aria-label="오류 안내 및 선택">
+        <div class="speaker-tag" style="background: var(--judge);">제미노 판사</div>
+        <div class="dialog-text" id="errorDialogText" style="min-height:auto;">법정 사정으로 잠시 휴정하노라.</div>
+        <div class="choice-stack">
+          <button type="button" class="btn-primary" id="btnRetryAi">다시 심리하기</button>
+          <button type="button" class="btn-secondary" id="btnFallbackDemo">예시 사건으로 체험하기</button>
+          <button type="button" class="btn-secondary" id="btnOpenApiFromError">🔑 Gemini API 키 설정</button>
+        </div>
+      </section>
+
+      <!-- 과실 비율 배너 -->
+      <section class="ratio-banner-backdrop hidden" id="ratioBannerBackdrop">
+        <div class="ratio-banner">
+          <div class="ratio-banner-title" id="ratioBannerTitle">1차 판결</div>
+          <div class="ratio-scores">
+            <div class="ratio-side left">
+              <div class="ratio-who" id="ratioMeLabel">나 과실</div>
+              <div class="ratio-num" id="ratioMeNum">30%</div>
+              <div class="ratio-diff hidden" id="ratioMeDiff">1차 30% → 25%</div>
+            </div>
+            <div class="ratio-side right">
+              <div class="ratio-who" id="ratioOtherLabel">남친 과실</div>
+              <div class="ratio-num" id="ratioOtherNum">70%</div>
+              <div class="ratio-diff hidden" id="ratioOtherDiff">1차 70% → 75%</div>
+            </div>
+          </div>
+          <div class="ratio-bar-track">
+            <div class="ratio-bar-fill" id="ratioBarFill"></div>
+          </div>
+          <div class="ratio-continue-hint">화면을 누르면 계속</div>
+        </div>
+      </section>
+
+      <!-- "이의 있음!" 전체 화면 연출 -->
+      <section class="objection-overlay hidden" id="objectionOverlay" aria-hidden="true">
+        <div class="objection-Overlay-lines"></div>
+        <div class="objection-burst">
+          <svg viewBox="0 0 320 200" preserveAspectRatio="none">
+            <polygon
+              points="160,6 195,38 248,12 242,56 308,46 270,92 314,126 260,140 288,186 226,166 204,196 164,168 122,196 104,162 42,188 68,138 10,124 54,90 14,44 78,56 72,12 126,38"
+              fill="#f4ecd8"
+              stroke="#0f0c17"
+              stroke-width="8"
+              stroke-linejoin="miter"
+            />
+          </svg>
+          <div class="objection-text">이의 있음!</div>
+        </div>
+      </section>
+
+      <!-- 5) 최종 판결문 모달 -->
+      <section class="verdict-sheet-backdrop hidden" id="verdictSheetBackdrop" aria-label="최종 판결문">
+        <div class="verdict-paper">
+          <h2 class="verdict-header">판 결 문</h2>
+          <div class="verdict-meta-table">
+            <div class="verdict-meta-label">사 건</div>
+            <div class="verdict-meta-val" id="verdictCaseText">[2026룡단4821] 읽씹 3시간 사건</div>
+            <div class="verdict-meta-label">신 청 인</div>
+            <div class="verdict-meta-val" id="verdictMeText">나</div>
+            <div class="verdict-meta-label">상 대 방</div>
+            <div class="verdict-meta-val" id="verdictOtherText">남친</div>
+            <div class="verdict-meta-label">과실 비율</div>
+            <div class="verdict-meta-val" id="verdictRatioText">나 25 : 75 남친</div>
+          </div>
+
+          <div class="verdict-section-title">주 문</div>
+          <div class="verdict-main-line" id="verdictOrderText">
+            남친 75, 나 25. 반복된 읽씹은 쥐라기에서도 중죄로다!
+          </div>
+
+          <div class="verdict-section-title">화 해 명 령</div>
+          <div class="verdict-advice-list" id="verdictAdviceList"></div>
+
+          <div class="verdict-Sign-row">
+            <span class="verdict-sign-text">룡적법원 재판장 제미노</span>
+            <span class="verdict-stamp" aria-label="룡 도장">룡</span>
+          </div>
+        </div>
+
+        <div class="verdict-share-actions" role="group" aria-label="판결문 저장 및 링크 공유">
+          <button type="button" class="btn-verdict-util" id="btnSaveVerdictImg">📸 판결문 이미지 저장</button>
+          <button type="button" class="btn-verdict-util" id="btnShareGameLink">🔗 룡적재판 링크 공유</button>
+        </div>
+
+        <div class="promo-ad-tab promo-ad-bottom" role="region" aria-label="대학생 구글 Gemini Plus 프로모션">
+          <div class="promo-ad-copy">
+            <div class="promo-ad-headline"><span class="promo-urgent-chip">마감 임박</span>대학생 제미나이 1년 0원</div>
+            <div class="promo-ad-subline">곧 혜택 종료! 1분 만에 무료로 받기</div>
+          </div>
+          <a
+            href="https://goo.gle/hufsseoul"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="promo-ad-btn"
+            id="btnPromoSignupBottom"
+          >무료 받기 ▶</a>
+        </div>
+
+        <div class="verdict-sheet-actions">
+          <button type="button" class="btn-secondary" id="btnCloseVerdict">판결문 닫기</button>
+          <button type="button" class="btn-primary" id="btnNewCase">새 사건 접수 ▶</button>
+        </div>
+      </section>
+
+      <!-- 판결문 이미지 저장 미리보기 모달 (모바일 꾹 눌러 저장 & PC 다운로드 겸용) -->
+      <section class="verdict-img-modal-backdrop hidden" id="verdictImgModalBackdrop" aria-label="판결문 이미지 저장">
+        <div class="verdict-img-modal">
+          <div class="verdict-img-modal-head">
+            <span>📸 판결문 이미지 저장</span>
+            <button type="button" class="link-btn" id="btnCloseVerdictImgModal" style="font-size:3.2cqw;">닫기 ✕</button>
+          </div>
+          <div class="verdict-img-preview-wrap">
+            <img id="verdictImgPreview" class="verdict-img-preview" alt="룡적재판 최종 판결문 이미지" />
+          </div>
+          <p class="verdict-img-hint">
+            <strong>📱 모바일:</strong> 위 판결문 이미지를 <strong>길게 꾹 눌러 [내 폰에 이미지 저장]</strong> 또는 아래 <strong>[📥 기기 저장]</strong> 터치!<br />
+            <strong>💻 PC:</strong> 위 이미지 <strong>우클릭 → [이미지를 다른 이름으로 저장]</strong> 또는 <strong>[📋 이미지 복사]</strong> 후 붙여넣기(Ctrl+V)!
+          </p>
+          <div style="display:flex;gap:1.6cqw;">
+            <button type="button" id="btnDownloadVerdictLink" class="btn-primary" style="flex:1.15;font-size:3.1cqw;padding:2cqw 2cqw;">📥 기기 저장</button>
+            <button type="button" id="btnCopyVerdictImg" class="btn-verdict-util" style="flex:1;font-size:3.1cqw;padding:2cqw 2cqw;">📋 이미지 복사</button>
+            <button type="button" class="btn-secondary" id="btnCloseVerdictImgBottom" style="flex:0.6;font-size:3.1cqw;padding:2cqw 2cqw;">닫기</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 인페이지 토스트 알림 -->
+      <div class="court-toast hidden" id="courtToast" role="status" aria-live="polite"></div>
+
+      <!-- Gemini API 키 설정 모달 -->
+      <section class="api-modal-backdrop hidden" id="apiModalBackdrop" aria-label="Gemini API 설정">
+        <div class="api-modal">
+          <h3>🔑 Gemini AI 판결 설정</h3>
+          <p>
+            Gemini Canvas 기본 연동 외에 별도의 개인 Gemini API 키를 사용하려면 아래에 입력하세요.
+            비워두면 Canvas 기본 환경 및 내장 판결 엔진이 자동으로 작동합니다.
+          </p>
+          <input type="password" id="inputApiKey" class="api-key-input" placeholder="AIzaSy... (선택 사항)" autocomplete="off" />
+          <div style="display:flex;gap:2cqw;">
+            <button type="button" class="btn-primary" id="btnSaveApiKey" style="flex:1;font-size:3.4cqw;">저장</button>
+            <button type="button" class="btn-secondary" id="btnCloseApiModal" style="flex:1;font-size:3.4cqw;">닫기</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 게임 화면 아래 버튼 3개 + 안내 문구 -->
+    <footer class="bottom-controls">
+      <div class="control-buttons">
+        <button type="button" class="ctrl-btn" id="btnAutoPlay">자동 넘김: 끔</button>
+        <button type="button" class="ctrl-btn active" id="btnSoundToggle">소리: 켬</button>
+        <button type="button" class="ctrl-btn" id="btnResetGame">처음부터</button>
+        <button type="button" class="ctrl-btn" id="btnApiConfig" title="Gemini API 설정" style="flex:0.45;">🔑 AI</button>
+      </div>
+      <p class="footer-notice">
+        화면을 누르거나 Enter로 대사를 넘겨요. 릴스 녹화할 땐 '자동 넘김'을 켜면 손대지 않고 끝까지 진행돼요. AI 판결은 재미용이니, 진짜 고민은 대화로 풀어요. 사연은 AI 서비스로 전송되니 실명, 연락처 같은 개인정보는 쓰지 마세요.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * 1. 상수 및 예시 데이터 (Gemini Canvas 연동 / 체험판 / 안전 권고)
+     *************************************************************************/
+    const apiKey = ""; // Gemini Canvas 런타임 자동 주입 변수
+
+    const EXAMPLE_STORY =
+      '남친이랑 저녁 약속 잡아놓고, 남친이 친구들이랑 게임하느라 3시간 동안 내 카톡을 읽씹했어. 너무 화나서 "그럼 게임이랑 사귀어"라고 보내고 전화도 안 받았어. 남친은 내가 과민반응이래. 누가 잘못한 거야?';
+
+    const EXAMPLE_REBUTTAL =
+      '아니 3시간이면 진짜 긴 거잖아! 그리고 전에도 똑같은 일 있어서 참다가 터진 거야.';
+
+    const DEMO_ROUND_1 = {
+      case_title: '읽씹 3시간 사건',
+      lines: [
+        '저녁 약속을 앞두고 게임에 빠져 3시간이나 카톡을 읽씹하고, 이에 격분해 연락을 끊은 사건이로다.',
+        '상대는 선약이 있음에도 연락조차 없이 3시간 동안 읽씹하여 신뢰를 저버렸으니 그 죄가 크도다.',
+        '허나 신청인 또한 비꼬는 말을 던지고 전화를 일방적으로 차단하여 대화의 길을 막았구나.'
+      ],
+      ratio: { me: 30, other: 70 },
+      verdict_line: '남친 70, 나 30. 읽씹의 죄가 더 무겁도다!'
+    };
+
+    const DEMO_ROUND_2 = {
+      objection_lines: [
+        '이의 있음! 이전에도 같은 일이 있었다면 참기 힘들었을 점은 충분히 인정합니다.',
+        '하지만 그럴수록 서운함을 바로 말하지 않고 쌓아두었다가 한꺼번에 폭발시킨 점은 아쉽습니다.',
+        '다만 상습적인 약속 무시와 3시간 읽씹이 확인되었으므로 상대방의 과실을 더 무겁게 물어야 합니다.'
+      ],
+      judge_lines: [
+        '변호사의 말대로 상습적인 읽씹이라면 정상참작의 여지가 충분하도다.',
+        '신청인이 참고 참다 터진 사정을 반영하여 과실 비율을 일부 조정하겠노라.'
+      ],
+      ratio: { me: 25, other: 75 },
+      final_verdict: '남친 75, 나 25. 반복된 읽씹은 쥐라기에서도 중죄로다!',
+      advice: [
+        "게임 전 '몇 시까지 할게' 한마디를 약속하라.",
+        '서운함은 그날그날 말하라. 쌓으면 화석이 되느니라.',
+        "화가 나도 차단 대신 '지금은 화나서 30분 뒤 통화하자'고 말하라."
+      ]
+    };
+
+    const SAFETY_KEYWORDS = [
+      '폭력', '폭행', '때렸', '때려', '맞았', '협박', '스토킹', '감금', '자해', '죽고 싶', '죽을래', '죽여', '성폭력', '강요'
+    ];
+
+    const SAFETY_ROUND_1 = {
+      case_title: '안전 최우선 보호 사건',
+      lines: [
+        '본 법정은 사연에서 심각한 위험 신호를 감지하여 과실 비율 판정을 즉시 멈추었노라.',
+        '폭력이나 협박, 스토킹, 강요, 자해 암시는 결코 사랑싸움이나 과실 비율로 따질 문제가 아니로다.',
+        '지금은 잘잘못을 가릴 때가 아니라 신청인의 안전과 마음을 지키는 것이 최우선이로다.'
+      ],
+      ratio: null,
+      verdict_line: '과실 판정 중지! 신청인의 안전이 무엇보다 우선이로다.'
+    };
+
+    const SAFETY_ROUND_2 = {
+      objection_lines: [
+        '이의 있음! 이 사안은 법정 공방이 아니라 즉각적인 보호와 전문 상담이 필요한 사안입니다.',
+        '어떠한 경우에도 폭력이나 위협, 강압적인 통제는 정당화될 수 없습니다.',
+        '혼자 감당하지 마시고 반드시 주변과 전문 기관의 도움을 받으시길 권고합니다.'
+      ],
+      judge_lines: [
+        '변호사의 뜻에 전적으로 동의하노라. 신청인은 결코 혼자 아파하지 말라.',
+        '즉시 안전한 곳으로 피하고 아래 전문 기관에 도움을 요청하노라.'
+      ],
+      ratio: null,
+      final_verdict: '비율 판정 없음. 당신의 안전과 생명이 가장 소중하노라.',
+      advice: [
+        '위급한 폭력·협박 상황이라면 즉시 112에 신고하여 보호를 받으라.',
+        '데이트폭력·스토킹·가정폭력 상담은 여성긴급전화 1366으로 연락하라.',
+        '마음이 너무 힘들고 위기감이 들 때는 정신건강위기상담 109에 전화하라.'
+      ]
+    };
+
+    const SYSTEM_PROMPT = `너는 인스타그램 콘텐츠 '룡적재판'(공룡 법정 패러디 게임)의 등장인물을 연기한다.
+- 제미노 판사: 회색 티라노사우루스. 근엄한 사극풍 법정 말투("~하노라", "~이로다", "본 법정은"). 짧고 리듬감 있게. 공룡다운 표현(예: 쥐라기, 비늘, 화석)은 한 번 정도만.
+- 트리 변호사: 트리케라톱스, 안경 쓴 깐깐한 변호사. 존댓말("~입니다"). 날카롭지만 얄밉지 않게.
+공통 원칙: 양쪽 입장을 공정하게 본다. 비하·혐오·성적 표현 금지. 정보가 부족하면 그럴듯하게 추정하되 단정하지 않는다. 각 대사는 70자 이내, 쉬운 한국어.
+안전 원칙: 사연에 폭력, 협박, 스토킹, 통제·강요, 자해 암시 같은 위험 신호가 있으면 농담과 과실 비율 판정을 멈추고 ratio를 null로 둔 채, 진지하게 안전을 먼저 권한다(긴급 시 112, 여성긴급전화 1366, 정신건강위기상담 109).`;
+
+    /*************************************************************************
+     * 2. 게임 상태 (State)
+     *************************************************************************/
+    const state = {
+      sessionId: 0,
+      step: 0,
+      meName: '나',
+      otherName: '남친',
+      story: EXAMPLE_STORY,
+      rebuttal: '',
+      acceptedFirstVerdict: false,
+      caseNo: '2026룡단4821',
+      caseTitle: '접수 대기',
+      firstResult: null,
+      finalResult: null,
+      secondCallPromise: null,
+      isDemo: false,
+      autoPlay: false,
+      soundOn: true,
+      reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+
+      // 캐릭터 및 애니메이션 상태
+      sceneChar: 'judge',
+      isTalking: false,
+      mouthOpen: false,
+      isThinking: false,
+      isBlinking: false,
+      idleBob: 0,
+      lawyerPointing: false,
+      gavelState: 0,
+
+      // 대사 타이핑 및 큐 상태
+      typingTimer: null,
+      autoTimer: null,
+      thinkingTimer: null,
+      fullLineText: '',
+      typedIndex: 0,
+      isTyping: false,
+      waitingForClick: false,
+      onAdvanceCallback: null,
+      bannerOpen: false,
+      bannerCleanup: null
+    };
+
+    /*************************************************************************
+     * 3. Web Audio 사운드 합성기 (첫 클릭 이후 재생)
+     *************************************************************************/
+    let audioCtx = null;
+
+    function ensureAudio() {
+      if (!state.soundOn) return null;
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, type, duration, startTimeOffset = 0, maxGain = 0.08) {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      try {
+        const now = ctx.currentTime + startTimeOffset;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(maxGain, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) {}
+    }
+
+    function playVoiceBlip(role) {
+      const freqMap = {
+        judge: 180,
+        lawyer: 420,
+        client: 640,
+        clerk: 300
+      };
+      const base = freqMap[role] || 300;
+      const jitter = (Math.random() - 0.5) * 18;
+      playTone(base + jitter, 'square', 0.042, 0, 0.05);
+    }
+
+    function playGavelSound() {
+      playTone(70, 'sine', 0.24, 0, 0.22);
+      playTone(140, 'triangle', 0.09, 0, 0.14);
+    }
+
+    function playObjectionSound() {
+      const notes = [330, 330, 494, 660];
+      notes.forEach((f, idx) => {
+        playTone(f, 'sawtooth', 0.11, idx * 0.07, 0.11);
+      });
+    }
+
+    function playChimeSound() {
+      const notes = [523, 659, 784];
+      notes.forEach((f, idx) => {
+        playTone(f, 'triangle', 0.14, idx * 0.08, 0.1);
+      });
+    }
+
+    function playThinkingTick() {
+      playTone(260, 'sine', 0.035, 0, 0.035);
+    }
+
+    /*************************************************************************
+     * 4. 픽셀아트 캔버스 렌더러 (180x220, 사각형 도트로 직접 그림)
+     *************************************************************************/
+    const canvas = document.getElementById('courtCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    function rect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    }
+
+    // 1) 제미노 판사 장면 (회색 티라노사우루스 + 나무 벽 + 발자국 문장 + 판사석 + 의사봉)
+    function drawJudgeScene() {
+      const bob = state.reducedMotion ? 0 : state.idleBob;
+
+      // 배경: 짙은 나무 벽 패널
+      rect(0, 0, 180, 220, '#2b1d16');
+      for (let x = 6; x < 180; x += 22) {
+        rect(x, 16, 18, 150, '#38261d');
+        rect(x + 2, 18, 14, 146, '#322119');
+      }
+      // 위쪽 금색 몰딩
+      rect(0, 0, 180, 10, '#1c120d');
+      rect(0, 10, 180, 4, '#e3a93b');
+      rect(0, 14, 180, 2, '#9e6f1e');
+      for (let x = 4; x < 180; x += 12) {
+        rect(x, 11, 6, 2, '#f5cc6a');
+      }
+
+      // 벽 가운데 금색 원형 공룡 발자국 문장 (cx=90, cy=46)
+      rect(74, 30, 32, 32, '#9e6f1e');
+      rect(72, 34, 36, 24, '#9e6f1e');
+      rect(76, 32, 28, 28, '#e3a93b');
+      rect(78, 34, 24, 24, '#452b1a');
+      // 공룡 발자국 (발바닥 + 발가락 3개)
+      rect(85, 46, 10, 8, '#e3a93b');
+      rect(81, 38, 3, 7, '#e3a93b');
+      rect(88, 36, 4, 9, '#e3a93b');
+      rect(96, 38, 3, 7, '#e3a93b');
+
+      // 제미노 판사 몸통 & 검은 법복
+      rect(42, 122 + bob, 96, 54, '#0f0c17');
+      rect(46, 124 + bob, 88, 52, '#1c1c29');
+      rect(54, 128 + bob, 4, 44, '#0f0c17');
+      rect(122, 128 + bob, 4, 44, '#0f0c17');
+      // 흰 넥밴드 (법복 칼라)
+      rect(78, 122 + bob, 24, 6, '#f4ecd8');
+      rect(81, 128 + bob, 7, 18, '#f4ecd8');
+      rect(92, 128 + bob, 7, 18, '#f4ecd8');
+      rect(88, 128 + bob, 4, 16, '#0f0c17');
+
+      // 판사 가발 양옆 컬 (흰색과 베이지 번갈아)
+      for (let i = 0; i < 4; i++) {
+        const curlColor = i % 2 === 0 ? '#f4ecd8' : '#d8cfb8';
+        rect(44, 74 + i * 11 + bob, 14, 10, '#0f0c17');
+        rect(46, 75 + i * 11 + bob, 11, 8, curlColor);
+        rect(122, 74 + i * 11 + bob, 14, 10, '#0f0c17');
+        rect(123, 75 + i * 11 + bob, 11, 8, curlColor);
+      }
+
+      // 티라노사우루스 머리
+      rect(54, 58 + bob, 72, 64, '#0f0c17');
+      rect(56, 60 + bob, 68, 60, '#8e939c');
+      rect(56, 60 + bob, 10, 60, '#5b5f68');
+      rect(56, 108 + bob, 68, 12, '#5b5f68');
+      rect(68, 62 + bob, 46, 6, '#b3b8c0');
+
+      // 콧구멍
+      rect(108, 78 + bob, 4, 4, '#3c4047');
+      rect(76, 78 + bob, 4, 4, '#3c4047');
+
+      // 판사 가발 정수리
+      rect(50, 48 + bob, 80, 16, '#0f0c17');
+      rect(52, 50 + bob, 76, 12, '#f4ecd8');
+      rect(56, 46 + bob, 68, 6, '#d8cfb8');
+      rect(64, 54 + bob, 52, 4, '#d8cfb8');
+      rect(86, 48 + bob, 8, 14, '#cfc2a6');
+
+      // 진지한 눈썹
+      rect(64, 67 + bob, 18, 4, '#2b2d33');
+      rect(98, 67 + bob, 18, 4, '#2b2d33');
+      rect(78, 69 + bob, 4, 3, '#2b2d33');
+      rect(98, 69 + bob, 4, 3, '#2b2d33');
+
+      if (state.isThinking || state.isBlinking) {
+        rect(66, 76 + bob, 14, 6, '#5b5f68');
+        rect(66, 79 + bob, 14, 3, '#0f0c17');
+        rect(100, 76 + bob, 14, 6, '#5b5f68');
+        rect(100, 79 + bob, 14, 3, '#0f0c17');
+      } else {
+        rect(65, 72 + bob, 16, 13, '#0f0c17');
+        rect(67, 73 + bob, 12, 11, '#ffffff');
+        rect(71, 75 + bob, 6, 7, '#0f0c17');
+        rect(72, 76 + bob, 2, 2, '#ffffff');
+
+        rect(99, 72 + bob, 16, 13, '#0f0c17');
+        rect(101, 73 + bob, 12, 11, '#ffffff');
+        rect(103, 75 + bob, 6, 7, '#0f0c17');
+        rect(104, 76 + bob, 2, 2, '#ffffff');
+      }
+
+      // 아래턱 연베이지 (#d8d5cb) & 입 애니메이션
+      if (state.isTalking && state.mouthOpen) {
+        rect(64, 92 + bob, 52, 18, '#0f0c17');
+        rect(66, 94 + bob, 48, 14, '#a82228');
+        rect(72, 100 + bob, 36, 8, '#d8343a');
+        for (let tx = 68; tx < 110; tx += 7) {
+          rect(tx, 94 + bob, 4, 4, '#f4ecd8');
+        }
+        for (let tx = 70; tx < 108; tx += 7) {
+          rect(tx, 104 + bob, 4, 4, '#f4ecd8');
+        }
+        rect(62, 108 + bob, 56, 12, '#d8d5cb');
+      } else {
+        rect(62, 96 + bob, 56, 20, '#d8d5cb');
+        rect(62, 95 + bob, 56, 3, '#0f0c17');
+        rect(70, 98 + bob, 5, 4, '#f4ecd8');
+        rect(88, 98 + bob, 5, 4, '#f4ecd8');
+        rect(104, 98 + bob, 5, 4, '#f4ecd8');
+      }
+
+      // 앞쪽: 나무 판사석과 금색 명패
+      rect(0, 166, 180, 6, '#0f0c17');
+      rect(0, 170, 180, 8, '#6b4631');
+      rect(0, 178, 180, 42, '#4a2f21');
+      rect(14, 184, 152, 30, '#362117');
+      rect(68, 186, 44, 18, '#0f0c17');
+      rect(70, 188, 40, 14, '#e3a93b');
+      rect(74, 192, 32, 2, '#4a2f21');
+      rect(78, 196, 24, 2, '#4a2f21');
+
+      // 오른쪽 의사봉 받침대
+      rect(134, 162, 26, 6, '#0f0c17');
+      rect(136, 164, 22, 4, '#9e6f1e');
+
+      // 의사봉 & 오른팔 연출
+      if (state.gavelState === 1) {
+        rect(126, 126, 14, 10, '#8e939c');
+        rect(134, 104, 4, 26, '#d8cfb8');
+        rect(124, 96, 24, 11, '#0f0c17');
+        rect(126, 98, 20, 7, '#6b4631');
+        rect(134, 98, 4, 7, '#e3a93b');
+      } else if (state.gavelState === 2) {
+        rect(124, 148, 14, 10, '#8e939c');
+        rect(132, 152, 18, 4, '#d8cfb8');
+        rect(135, 146, 24, 14, '#0f0c17');
+        rect(137, 148, 20, 10, '#6b4631');
+        rect(145, 148, 4, 10, '#e3a93b');
+        rect(128, 156, 4, 4, '#f4ecd8');
+        rect(162, 154, 5, 4, '#e3a93b');
+        rect(144, 140, 4, 4, '#f4ecd8');
+      } else {
+        rect(138, 152, 20, 10, '#0f0c17');
+        rect(140, 154, 16, 6, '#6b4631');
+        rect(146, 154, 4, 6, '#e3a93b');
+        rect(126, 156, 14, 4, '#d8cfb8');
+      }
+    }
+
+    // 2) 트리 변호사 장면
+    function drawLawyerScene() {
+      const bob = state.reducedMotion ? 0 : state.idleBob;
+
+      rect(0, 0, 180, 220, '#1e2436');
+      const shelfY = [18, 64, 110];
+      const bookColors = ['#d8343a', '#e3a93b', '#4ca66b', '#4f82c4', '#9b6bc2', '#d97b43', '#f4ecd8'];
+      shelfY.forEach((sy, sIdx) => {
+        rect(8, sy, 164, 38, '#2b1c12');
+        let bx = 12;
+        let bCount = 0;
+        while (bx < 162) {
+          const bw = 6 + ((bCount * 3 + sIdx * 5) % 5);
+          const bh = 24 + ((bCount * 7 + sIdx * 2) % 10);
+          const col = bookColors[(bCount + sIdx * 2) % bookColors.length];
+          rect(bx, sy + (36 - bh), bw, bh, col);
+          rect(bx, sy + (36 - bh) + 3, bw, 2, 'rgba(15,12,23,0.35)');
+          bx += bw + 2;
+          bCount++;
+        }
+        rect(6, sy + 36, 168, 6, '#523824');
+        rect(6, sy + 41, 168, 2, '#0f0c17');
+      });
+
+      // 주황 프릴 (#f0a640)
+      rect(34, 40 + bob, 112, 66, '#0f0c17');
+      rect(37, 43 + bob, 106, 60, '#b87318');
+      rect(40, 46 + bob, 100, 54, '#f0a640');
+      for (let fx = 42; fx <= 132; fx += 14) {
+        rect(fx, 38 + bob, 6, 5, '#f4ecd8');
+      }
+      rect(32, 54 + bob, 5, 6, '#f4ecd8');
+      rect(32, 74 + bob, 5, 6, '#f4ecd8');
+      rect(143, 54 + bob, 5, 6, '#f4ecd8');
+      rect(143, 74 + bob, 5, 6, '#f4ecd8');
+
+      // 남색 정장 몸통 & 흰 셔츠 & 빨간 넥타이 & 금색 배지
+      rect(42, 122 + bob, 96, 50, '#0f0c17');
+      rect(45, 124 + bob, 90, 48, '#1c2540');
+      rect(76, 122 + bob, 28, 30, '#f4ecd8');
+      rect(80, 152 + bob, 20, 10, '#f4ecd8');
+      rect(86, 124 + bob, 8, 8, '#9e1b20');
+      rect(85, 132 + bob, 10, 26, '#d8343a');
+      rect(87, 158 + bob, 6, 4, '#d8343a');
+      rect(68, 124 + bob, 8, 34, '#2a3659');
+      rect(104, 124 + bob, 8, 34, '#2a3659');
+      rect(107, 134 + bob, 5, 5, '#e3a93b');
+
+      // 파란 트리케라톱스 머리 (#7da2d8)
+      rect(54, 62 + bob, 72, 60, '#0f0c17');
+      rect(57, 65 + bob, 66, 54, '#7da2d8');
+      rect(57, 65 + bob, 8, 54, '#5476ab');
+      rect(66, 67 + bob, 48, 5, '#a3c2f0');
+
+      // 크림색 뿔 2개 + 코뿔 1개
+      rect(58, 44 + bob, 10, 20, '#0f0c17');
+      rect(60, 46 + bob, 6, 18, '#f4ecd8');
+      rect(60, 46 + bob, 2, 18, '#cfc2a3');
+      rect(112, 44 + bob, 10, 20, '#0f0c17');
+      rect(114, 46 + bob, 6, 18, '#f4ecd8');
+      rect(114, 46 + bob, 2, 18, '#cfc2a3');
+      rect(85, 82 + bob, 10, 12, '#0f0c17');
+      rect(87, 84 + bob, 6, 9, '#f4ecd8');
+
+      // 둥근 검정 안경 & 눈
+      rect(62, 72 + bob, 22, 16, '#0f0c17');
+      rect(96, 72 + bob, 22, 16, '#0f0c17');
+      rect(84, 78 + bob, 12, 3, '#0f0c17');
+
+      if (state.isThinking || state.isBlinking) {
+        rect(65, 75 + bob, 16, 10, '#a3c2f0');
+        rect(67, 80 + bob, 12, 2, '#0f0c17');
+        rect(99, 75 + bob, 16, 10, '#a3c2f0');
+        rect(101, 80 + bob, 12, 2, '#0f0c17');
+      } else {
+        rect(65, 75 + bob, 16, 10, '#ffffff');
+        rect(71, 77 + bob, 6, 6, '#0f0c17');
+        rect(66, 76 + bob, 4, 2, '#c7e2ff');
+
+        rect(99, 75 + bob, 16, 10, '#ffffff');
+        rect(105, 77 + bob, 6, 6, '#0f0c17');
+        rect(100, 76 + bob, 4, 2, '#c7e2ff');
+      }
+
+      // 부리 모양 입
+      if (state.isTalking && state.mouthOpen) {
+        rect(72, 98 + bob, 36, 16, '#0f0c17');
+        rect(74, 100 + bob, 32, 12, '#b82830');
+        rect(78, 106 + bob, 24, 6, '#f08cae');
+      } else {
+        rect(72, 102 + bob, 36, 3, '#0f0c17');
+        rect(84, 99 + bob, 12, 3, '#5476ab');
+      }
+
+      // 지적 포즈 ("이의 있음!" 첫 대사 손가락질)
+      if (state.lawyerPointing) {
+        rect(118, 118 + bob, 38, 18, '#0f0c17');
+        rect(120, 120 + bob, 32, 14, '#1c2540');
+        rect(150, 120 + bob, 5, 14, '#f4ecd8');
+        rect(154, 116 + bob, 14, 18, '#0f0c17');
+        rect(155, 118 + bob, 11, 14, '#7da2d8');
+        rect(164, 120 + bob, 14, 6, '#0f0c17');
+        rect(164, 121 + bob, 12, 4, '#7da2d8');
+        rect(156, 106 + bob, 18, 2, '#f4ecd8');
+        rect(160, 138 + bob, 16, 2, '#f4ecd8');
+      }
+
+      // 앞쪽: 변호사 책상 (서류, 노트북)
+      rect(0, 168, 180, 52, '#4a3222');
+      rect(0, 168, 180, 6, '#6b4631');
+      rect(0, 166, 180, 3, '#0f0c17');
+      rect(16, 160, 34, 12, '#0f0c17');
+      rect(18, 162, 30, 8, '#f4ecd8');
+      rect(22, 165, 20, 2, '#8e939c');
+      rect(116, 144, 42, 26, '#0f0c17');
+      rect(118, 146, 38, 22, '#8e939c');
+      rect(133, 154, 8, 6, '#f4ecd8');
+      rect(110, 168, 50, 4, '#5b5f68');
+    }
+
+    // 3) 신청인 장면
+    function drawClientScene() {
+      const bob = state.reducedMotion ? 0 : state.idleBob;
+
+      rect(0, 0, 180, 220, '#241c33');
+      for (let x = 0; x < 180; x += 16) {
+        rect(x, 0, 8, 220, '#2d2340');
+      }
+
+      // 분홍 초승달
+      rect(128, 18, 28, 28, '#181124');
+      rect(126, 16, 32, 32, '#3d2f59');
+      rect(128, 18, 28, 28, '#161221');
+      rect(136, 22, 14, 18, '#f3c6d8');
+      rect(142, 24, 10, 12, '#161221');
+      rect(134, 26, 4, 10, '#ffdfec');
+
+      // 아기 브라키오사우루스 몸통 (#b39ae0) & 분홍 배 (#f3c6d8) & 무늬 (#8a72bf)
+      rect(56, 114 + bob, 68, 56, '#0f0c17');
+      rect(59, 116 + bob, 62, 54, '#b39ae0');
+      rect(72, 128 + bob, 36, 42, '#f3c6d8');
+      rect(63, 124 + bob, 7, 7, '#8a72bf');
+      rect(110, 126 + bob, 7, 7, '#8a72bf');
+      rect(65, 140 + bob, 5, 5, '#8a72bf');
+
+      // 둥근 머리
+      rect(50, 54 + bob, 80, 62, '#0f0c17');
+      rect(53, 57 + bob, 74, 56, '#b39ae0');
+      rect(78, 59 + bob, 12, 6, '#8a72bf');
+      rect(94, 61 + bob, 8, 5, '#8a72bf');
+      rect(62, 63 + bob, 7, 5, '#8a72bf');
+
+      // 분홍 볼
+      rect(57, 92 + bob, 12, 7, '#f08cae');
+      rect(111, 92 + bob, 12, 7, '#f08cae');
+
+      // 아주 큰 반짝이는 눈 (흰 하이라이트 2개)
+      if (state.isThinking || state.isBlinking) {
+        rect(62, 82 + bob, 18, 3, '#0f0c17');
+        rect(100, 82 + bob, 18, 3, '#0f0c17');
+      } else {
+        rect(61, 72 + bob, 20, 18, '#0f0c17');
+        rect(63, 74 + bob, 6, 6, '#ffffff');
+        rect(73, 83 + bob, 4, 4, '#ffffff');
+        rect(99, 72 + bob, 20, 18, '#0f0c17');
+        rect(101, 74 + bob, 6, 6, '#ffffff');
+        rect(111, 83 + bob, 4, 4, '#ffffff');
+      }
+
+      // 입 애니메이션
+      if (state.isTalking && state.mouthOpen) {
+        rect(82, 95 + bob, 16, 12, '#0f0c17');
+        rect(84, 97 + bob, 12, 8, '#d8343a');
+        rect(86, 101 + bob, 8, 4, '#f3c6d8');
+      } else {
+        rect(83, 98 + bob, 14, 3, '#0f0c17');
+        rect(81, 96 + bob, 3, 3, '#0f0c17');
+        rect(96, 96 + bob, 3, 3, '#0f0c17');
+      }
+
+      // 앞쪽: 증언대와 마이크
+      rect(0, 168, 180, 52, '#4a3222');
+      rect(0, 168, 180, 6, '#6b4631');
+      rect(0, 166, 180, 3, '#0f0c17');
+      rect(24, 180, 132, 34, '#362117');
+      rect(86, 156, 8, 12, '#2b2d38');
+      rect(82, 164, 16, 4, '#0f0c17');
+      rect(83, 144, 14, 12, '#0f0c17');
+      rect(85, 146, 10, 8, '#8e939c');
+      rect(85, 149, 10, 2, '#5b5f68');
+    }
+
+    function renderCanvas() {
+      ctx.clearRect(0, 0, 180, 220);
+      if (state.sceneChar === 'lawyer') {
+        drawLawyerScene();
+      } else if (state.sceneChar === 'client') {
+        drawClientScene();
+      } else {
+        drawJudgeScene();
+      }
+    }
+
+    /*************************************************************************
+     * 5. UI 헬퍼 및 연출 함수
+     *************************************************************************/
+    const gameFrame = document.getElementById('gameFrame');
+    const gavelPopLayer = document.getElementById('gavelPopLayer');
+    const hudStepDots = document.getElementById('hudStepDots');
+    const hudStepLabel = document.getElementById('hudStepLabel');
+    const hudCaseNo = document.getElementById('hudCaseNo');
+    const hudCaseTitle = document.getElementById('hudCaseTitle');
+    const hudDemoChip = document.getElementById('hudDemoChip');
+    const speakerTag = document.getElementById('speakerTag');
+    const dialogText = document.getElementById('dialogText');
+    const nextIndicator = document.getElementById('nextIndicator');
+
+    const STEP_NAMES = {
+      1: '1/5 사건 접수',
+      2: '2/5 1차 판결',
+      3: '3/5 반론',
+      4: '4/5 이의 있음!',
+      5: '5/5 최종 판결'
+    };
+
+    function generateCaseNo() {
+      const rand4 = Math.floor(1000 + Math.random() * 9000);
+      return `2026룡단${rand4}`;
+    }
+
+    function updateHUD() {
+      const dots = hudStepDots.querySelectorAll('.step-sq');
+      dots.forEach((dot, idx) => {
+        const stepIdx = idx + 1;
+        dot.className = 'step-sq';
+        if (stepIdx < state.step) {
+          dot.classList.add('done');
+        } else if (stepIdx === state.step) {
+          dot.classList.add('current');
+        }
+      });
+      hudStepLabel.textContent = STEP_NAMES[state.step] || '1/5 사건 접수';
+      hudCaseNo.textContent = state.caseNo;
+      hudCaseTitle.textContent =
+        state.caseTitle === '접수 대기' ? '접수 대기' : `「${state.caseTitle}」`;
+      if (state.isDemo) {
+        hudDemoChip.classList.remove('hidden');
+      } else {
+        hudDemoChip.classList.add('hidden');
+      }
+    }
+
+    function setSpeaker(role, customLabel) {
+      const colorMap = {
+        judge: 'var(--judge)',
+        lawyer: 'var(--lawyer)',
+        client: 'var(--client)',
+        clerk: 'var(--gold)'
+      };
+      const defaultNameMap = {
+        judge: '제미노 판사',
+        lawyer: '트리 변호사',
+        client: `${state.meName} (신청인)`,
+        clerk: '법정 서기'
+      };
+      speakerTag.style.background = colorMap[role] || 'var(--judge)';
+      speakerTag.textContent = customLabel || defaultNameMap[role] || '제미노 판사';
+
+      if (role === 'judge' || role === 'lawyer' || role === 'client') {
+        state.sceneChar = role;
+      }
+      renderCanvas();
+    }
+
+    function triggerShake() {
+      if (state.reducedMotion) return;
+      gameFrame.classList.remove('shake');
+      void gameFrame.offsetWidth;
+      gameFrame.classList.add('shake');
+    }
+
+    function strikeGavel(times = 1, sessionId = state.sessionId) {
+      return new Promise((resolve) => {
+        state.sceneChar = 'judge';
+        let count = 0;
+        const positions = [
+          { left: '62%', top: '48%' },
+          { left: '52%', top: '38%' },
+          { left: '68%', top: '54%' }
+        ];
+
+        function doOneStrike() {
+          if (sessionId !== state.sessionId) return;
+          state.gavelState = 1;
+          renderCanvas();
+
+          setTimeout(() => {
+            if (sessionId !== state.sessionId) return;
+            state.gavelState = 2;
+            renderCanvas();
+            playGavelSound();
+            triggerShake();
+
+            const pop = document.createElement('div');
+            pop.className = 'bang-text';
+            pop.textContent = '땅!';
+            const pos = positions[count % positions.length];
+            pop.style.left = pos.left;
+            pop.style.top = pos.top;
+            gavelPopLayer.appendChild(pop);
+            setTimeout(() => pop.remove(), 600);
+
+            setTimeout(() => {
+              if (sessionId !== state.sessionId) return;
+              state.gavelState = 0;
+              renderCanvas();
+              count++;
+              if (count < times) {
+                setTimeout(doOneStrike, 140);
+              } else {
+                setTimeout(resolve, 180);
+              }
+            }, 190);
+          }, 130);
+        }
+
+        doOneStrike();
+      });
+    }
+
+    function clearTimers() {
+      if (state.typingTimer) {
+        clearInterval(state.typingTimer);
+        state.typingTimer = null;
+      }
+      if (state.autoTimer) {
+        clearTimeout(state.autoTimer);
+        state.autoTimer = null;
+      }
+      if (state.thinkingTimer) {
+        clearInterval(state.thinkingTimer);
+        state.thinkingTimer = null;
+      }
+    }
+
+    function finishTypingCurrentLine() {
+      if (!state.isTyping) return;
+      clearInterval(state.typingTimer);
+      state.typingTimer = null;
+      state.isTyping = false;
+      state.isTalking = false;
+      state.mouthOpen = false;
+      dialogText.textContent = state.fullLineText;
+      nextIndicator.classList.remove('hidden');
+      renderCanvas();
+
+      if (state.autoPlay && state.waitingForClick) {
+        const waitMs = 1100 + state.fullLineText.length * 45;
+        state.autoTimer = setTimeout(() => {
+          advanceDialogue();
+        }, waitMs);
+      }
+    }
+
+    function advanceDialogue() {
+      if (state.bannerOpen && state.bannerCleanup) {
+        state.bannerCleanup();
+        return;
+      }
+      if (state.isTyping) {
+        finishTypingCurrentLine();
+        return;
+      }
+      if (state.waitingForClick && state.onAdvanceCallback) {
+        clearTimeout(state.autoTimer);
+        state.autoTimer = null;
+        state.waitingForClick = false;
+        nextIndicator.classList.add('hidden');
+        const cb = state.onAdvanceCallback;
+        state.onAdvanceCallback = null;
+        cb();
+      }
+    }
+
+    function showLine(role, text, options = {}) {
+      const currentSession = state.sessionId;
+      return new Promise((resolve) => {
+        if (currentSession !== state.sessionId) return;
+        clearTimers();
+        state.isThinking = false;
+        state.lawyerPointing = Boolean(options.pointing);
+        setSpeaker(role, options.speakerName);
+
+        state.fullLineText = text;
+        state.typedIndex = 0;
+        state.isTyping = true;
+        state.isTalking = true;
+        state.waitingForClick = true;
+        nextIndicator.classList.add('hidden');
+        dialogText.textContent = '';
+
+        state.onAdvanceCallback = () => {
+          if (currentSession !== state.sessionId) return;
+          state.lawyerPointing = false;
+          renderCanvas();
+          resolve();
+        };
+
+        if (state.reducedMotion) {
+          finishTypingCurrentLine();
+          return;
+        }
+
+        state.typingTimer = setInterval(() => {
+          if (currentSession !== state.sessionId) {
+            clearTimers();
+            return;
+          }
+          state.typedIndex++;
+          dialogText.textContent = state.fullLineText.slice(0, state.typedIndex);
+          if (state.typedIndex % 2 === 1) {
+            playVoiceBlip(role);
+          }
+          if (state.typedIndex >= state.fullLineText.length) {
+            finishTypingCurrentLine();
+          }
+        }, 32);
+      });
+    }
+
+    async function showLines(role, lines, options = {}) {
+      const currentSession = state.sessionId;
+      for (let i = 0; i < lines.length; i++) {
+        if (currentSession !== state.sessionId) return;
+        await showLine(role, lines[i], {
+          ...options,
+          pointing: options.pointingFirst && i === 0
+        });
+      }
+    }
+
+    function startThinkingDisplay(role, baseText) {
+      clearTimers();
+      state.isTyping = false;
+      state.isTalking = false;
+      state.waitingForClick = false;
+      state.isThinking = true;
+      nextIndicator.classList.add('hidden');
+      setSpeaker(role === 'lawyer' ? 'lawyer' : 'judge', '법정 서기');
+      speakerTag.style.background = 'var(--gold)';
+
+      let dots = 1;
+      dialogText.textContent = `${baseText}.`;
+      renderCanvas();
+
+      state.thinkingTimer = setInterval(() => {
+        dots = (dots % 3) + 1;
+        dialogText.textContent = `${baseText}${'.'.repeat(dots)}`;
+        playThinkingTick();
+      }, 380);
+    }
+
+    function stopThinkingDisplay() {
+      if (state.thinkingTimer) {
+        clearInterval(state.thinkingTimer);
+        state.thinkingTimer = null;
+      }
+      state.isThinking = false;
+      renderCanvas();
+    }
+
+    function showRatioBanner(titleText, ratioObj, prevRatioObj = null) {
+      const currentSession = state.sessionId;
+      return new Promise((resolve) => {
+        if (currentSession !== state.sessionId || !ratioObj) {
+          resolve();
+          return;
+        }
+        const backdrop = document.getElementById('ratioBannerBackdrop');
+        const titleEl = document.getElementById('ratioBannerTitle');
+        const meLabelEl = document.getElementById('ratioMeLabel');
+        const otherLabelEl = document.getElementById('ratioOtherLabel');
+        const meNumEl = document.getElementById('ratioMeNum');
+        const otherNumEl = document.getElementById('ratioOtherNum');
+        const meDiffEl = document.getElementById('ratioMeDiff');
+        const otherDiffEl = document.getElementById('ratioOtherDiff');
+        const barFillEl = document.getElementById('ratioBarFill');
+
+        titleEl.textContent = titleText;
+        meLabelEl.textContent = `${state.meName} 과실`;
+        otherLabelEl.textContent = `${state.otherName} 과실`;
+        meNumEl.textContent = `${ratioObj.me}%`;
+        otherNumEl.textContent = `${ratioObj.other}%`;
+
+        if (prevRatioObj && (prevRatioObj.me !== ratioObj.me || prevRatioObj.other !== ratioObj.other)) {
+          meDiffEl.textContent = `1차 ${prevRatioObj.me}% → ${ratioObj.me}%`;
+          otherDiffEl.textContent = `1차 ${prevRatioObj.other}% → ${ratioObj.other}%`;
+          meDiffEl.classList.remove('hidden');
+          otherDiffEl.classList.remove('hidden');
+        } else {
+          meDiffEl.classList.add('hidden');
+          otherDiffEl.classList.add('hidden');
+        }
+
+        barFillEl.style.transition = 'none';
+        barFillEl.style.width = '0%';
+        backdrop.classList.remove('hidden');
+        playChimeSound();
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            barFillEl.style.transition = state.reducedMotion ? 'none' : 'width 1s steps(10)';
+            barFillEl.style.width = `${ratioObj.me}%`;
+          });
+        });
+
+        state.bannerOpen = true;
+        const closeBanner = () => {
+          if (!state.bannerOpen) return;
+          state.bannerOpen = false;
+          state.bannerCleanup = null;
+          clearTimeout(state.autoTimer);
+          backdrop.classList.add('hidden');
+          resolve();
+        };
+        state.bannerCleanup = closeBanner;
+
+        if (state.autoPlay) {
+          state.autoTimer = setTimeout(closeBanner, 3200);
+        }
+      });
+    }
+
+    function playObjectionCutIn() {
+      const currentSession = state.sessionId;
+      return new Promise((resolve) => {
+        if (currentSession !== state.sessionId) return;
+        const overlay = document.getElementById('objectionOverlay');
+        overlay.classList.remove('hidden');
+        playObjectionSound();
+        triggerShake();
+
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          if (currentSession === state.sessionId) {
+            resolve();
+          }
+        }, 1500);
+      });
+    }
+
+    /*************************************************************************
+     * 6. Gemini AI API 호출 + 문맥 기반 동적 판결 엔진 (Canvas 호환)
+     *************************************************************************/
+    let memoryApiKey = '';
+    function safeGetApiKey() {
+      try {
+        return localStorage.getItem('dino_court_gemini_key') || memoryApiKey || '';
+      } catch (e) {
+        return memoryApiKey || '';
+      }
+    }
+    function safeSetApiKey(val) {
+      memoryApiKey = val || '';
+      try {
+        if (val) localStorage.setItem('dino_court_gemini_key', val);
+        else localStorage.removeItem('dino_court_gemini_key');
+      } catch (e) {}
+    }
+
+    function getEffectiveApiKey() {
+      let urlKey = '';
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlKey = urlParams.get('apiKey') || urlParams.get('key') || '';
+      } catch (e) {}
+      return (
+        safeGetApiKey() ||
+        window.GEMINI_API_KEY ||
+        window.__GEMINI_API_KEY__ ||
+        urlKey ||
+        apiKey ||
+        ''
+      ).trim();
+    }
+
+    function containsSafetyRisk(text) {
+      const t = (text || '').toLowerCase();
+      return SAFETY_KEYWORDS.some((kw) => t.includes(kw));
+    }
+
+    function extractJsonObject(rawText) {
+      if (!rawText || typeof rawText !== 'string') {
+        throw new Error('PARSE_ERROR');
+      }
+      const start = rawText.indexOf('{');
+      const end = rawText.lastIndexOf('}');
+      if (start === -1 || end === -1 || end <= start) {
+        throw new Error('PARSE_ERROR');
+      }
+      try {
+        return JSON.parse(rawText.slice(start, end + 1));
+      } catch (e) {
+        throw new Error('PARSE_ERROR');
+      }
+    }
+
+    function normalizeRatio(ratio) {
+      if (!ratio || typeof ratio !== 'object') return null;
+      const me = Number(ratio.me);
+      const other = Number(ratio.other);
+      if (!Number.isFinite(me) || !Number.isFinite(other) || me < 0 || other < 0 || me + other <= 0) {
+        return null;
+      }
+      const sum = me + other;
+      const normMe = Math.round((me / sum) * 100);
+      return {
+        me: normMe,
+        other: 100 - normMe
+      };
+    }
+
+    function cleanStringArray(arr, maxLen) {
+      if (!Array.isArray(arr)) return [];
+      return arr
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter((item) => item.length > 0)
+        .slice(0, maxLen);
+    }
+
+    function sanitizeRound1Result(rawObj) {
+      if (!rawObj || typeof rawObj !== 'object') throw new Error('PARSE_ERROR');
+      const case_title = String(rawObj.case_title || '사랑싸움 사건')
+        .replace(/[「」]/g, '')
+        .trim()
+        .slice(0, 16) || '사랑싸움 사건';
+      const lines = cleanStringArray(rawObj.lines, 4);
+      if (lines.length === 0) throw new Error('PARSE_ERROR');
+      const ratio = normalizeRatio(rawObj.ratio);
+      const verdict_line = String(rawObj.verdict_line || '').trim();
+      if (!verdict_line) throw new Error('PARSE_ERROR');
+      return { case_title, lines, ratio, verdict_line };
+    }
+
+    function sanitizeRound2Result(rawObj) {
+      if (!rawObj || typeof rawObj !== 'object') throw new Error('PARSE_ERROR');
+      let objection_lines = cleanStringArray(rawObj.objection_lines, 4);
+      if (objection_lines.length === 0) throw new Error('PARSE_ERROR');
+
+      objection_lines[0] = objection_lines[0]
+        .replace(/^이의\s*있음[!！.~…\s]*/i, '')
+        .trim();
+      if (!objection_lines[0]) {
+        objection_lines[0] = '신청인의 반론에는 다시 짚어볼 대목이 있습니다.';
+      }
+
+      const judge_lines = cleanStringArray(rawObj.judge_lines, 3);
+      if (judge_lines.length === 0) throw new Error('PARSE_ERROR');
+
+      const ratio = normalizeRatio(rawObj.ratio);
+      const final_verdict = String(rawObj.final_verdict || '').trim();
+      if (!final_verdict) throw new Error('PARSE_ERROR');
+
+      const advice = cleanStringArray(rawObj.advice, 3);
+      if (advice.length === 0) throw new Error('PARSE_ERROR');
+
+      return { objection_lines, judge_lines, ratio, final_verdict, advice };
+    }
+
+    // 사연 텍스트를 직접 분석해 맞춤형 판결을 생성하는 내장 추론 엔진 (API 키 미주입 환경에서도 사연별 동적 판결 보장)
+    function analyzeStoryLocally(meName, otherName, storyText) {
+      if (containsSafetyRisk(storyText)) {
+        return SAFETY_ROUND_1;
+      }
+      if (storyText.trim() === EXAMPLE_STORY.trim() && meName === '나' && otherName === '남친') {
+        return DEMO_ROUND_1;
+      }
+
+      const s = storyText;
+      let topicTitle = '일상 다툼 사건';
+      let otherFaultDesc = `${otherName} 측이 상대의 입장과 감정을 세심히 배려하지 못한 잘못이 크도다.`;
+      let meFaultDesc = `허나 ${meName} 또한 서운함을 차분히 풀기보다 감정적으로 대응한 책임이 있구나.`;
+      let otherScore = 65;
+
+      const timeMatch = s.match(/(\d+)\s*(시간|분|일|개월|달|주년)/);
+      const timeToken = timeMatch ? `${timeMatch[1]}${timeMatch[2]} ` : '';
+
+      if (/읽씹|안\s*읽|연락|카톡|답장|잠수|전화/.test(s)) {
+        topicTitle = `${timeToken}연락 두절 사건`.slice(0, 12);
+        otherFaultDesc = `${otherName} 측이 기본적인 연락 예의를 소홀히 하여 신청인을 애타게 만든 죄가 무겁도다.`;
+        otherScore = 70;
+      } else if (/지각|늦게|늦었|약속|바람맞|파토/.test(s)) {
+        topicTitle = `${timeToken}약속 파기 사건`.slice(0, 12);
+        otherFaultDesc = `${otherName} 측이 소중한 약속 시간을 가볍게 여겨 신뢰에 금이 가게 하였도다.`;
+        otherScore = 75;
+      } else if (/게임|롤|배그|피시방|PC방|취미/.test(s)) {
+        topicTitle = `${timeToken}게임 몰두 사건`.slice(0, 12);
+        otherFaultDesc = `${otherName} 측이 눈앞의 게임에 빠져 소중한 사람과의 시간을 뒷전으로 미루었도다.`;
+        otherScore = 70;
+      } else if (/치킨|음식|먹었|먹어|메뉴|밥|디저트|배달/.test(s)) {
+        topicTitle = '식탁 평화 훼손 사건';
+        otherFaultDesc = `${otherName} 측이 먹는 문제에서 양보와 배려를 잊어 식탁의 평화를 깨뜨렸도다.`;
+        otherScore = 65;
+      } else if (/기념일|생일|선물|100일|1주년|깜빡/.test(s)) {
+        topicTitle = '기념일 소홀 사건';
+        otherFaultDesc = `${otherName} 측이 함께 챙겨야 할 뜻깊은 날의 성의를 다하지 못한 과실이 크도다.`;
+        otherScore = 72;
+      } else if (/여사친|남사친|이성|전여친|전남친|질투/.test(s)) {
+        topicTitle = '이성 경계 소홀 사건';
+        otherFaultDesc = `${otherName} 측이 오해를 살 만한 행동으로 신청인의 마음을 불안하게 만들었도다.`;
+        otherScore = 68;
+      } else if (/말투|짜증|화냈|화내|소리|무시|과민반응/.test(s)) {
+        topicTitle = '말투 분쟁 사건';
+        otherFaultDesc = `${otherName} 측이 다정한 대화 대신 날 선 말투로 상처를 준 잘못이 크도다.`;
+        otherScore = 64;
+      }
+
+      if (/차단|안\s*받|잠수|그만|헤어|비꼬|사귀어|던졌|엎었|소리질/.test(s)) {
+        meFaultDesc = `허나 ${meName} 또한 홧김에 극단적인 표현이나 대화 단절로 갈등을 키운 과실이 있구나.`;
+        otherScore = Math.max(50, otherScore - 6);
+      } else {
+        meFaultDesc = `다만 ${meName} 또한 서운한 지점을 즉시 구체적으로 알리지 못한 아쉬움이 남는구나.`;
+      }
+
+      const meScore = 100 - otherScore;
+      const shortPreview = s.replace(/\s+/g, ' ').slice(0, 28);
+
+      return {
+        case_title: topicTitle,
+        lines: [
+          `「${shortPreview}…」로 불거진 ${meName}와(과) ${otherName} 사이의 치열한 공방이로다.`,
+          otherFaultDesc,
+          meFaultDesc
+        ],
+        ratio: { me: meScore, other: otherScore },
+        verdict_line: `${otherName} ${otherScore}, ${meName} ${meScore}. 먼저 원인을 제공한 죄가 더 무겁도다!`
+      };
+    }
+
+    function analyzeRebuttalLocally(meName, otherName, storyText, firstRes, rebuttalText, accepted) {
+      if (containsSafetyRisk(storyText) || containsSafetyRisk(rebuttalText)) {
+        return SAFETY_ROUND_2;
+      }
+      if (
+        storyText.trim() === EXAMPLE_STORY.trim() &&
+        meName === '나' &&
+        otherName === '남친' &&
+        !accepted &&
+        rebuttalText.trim() === EXAMPLE_REBUTTAL.trim()
+      ) {
+        return DEMO_ROUND_2;
+      }
+
+      const prevMe = firstRes?.ratio?.me ?? 30;
+      const prevOther = firstRes?.ratio?.other ?? 70;
+
+      if (accepted || !rebuttalText.trim()) {
+        return {
+          objection_lines: [
+            `신청인 ${meName} 측이 1차 판결을 겸허히 수용하였습니다.`,
+            '자신의 과실을 인정하고 화해하려는 태도는 법정에서도 높이 평가할 만합니다.',
+            '따라서 1차 판결의 과실 비율을 유지하며 평화로운 화해를 권고합니다.'
+          ],
+          judge_lines: [
+            `${meName}이(가) 판결에 승복하니 공룡 법정의 기강이 바로 서는구나.`,
+            '1차 판결의 과실 비율을 그대로 확정하겠노라.'
+          ],
+          ratio: { me: prevMe, other: prevOther },
+          final_verdict: `${otherName} ${prevOther}, ${meName} ${prevMe}. 1차 판결대로 확정하노라!`,
+          advice: [
+            '다툼 직후에는 감정을 가라앉힐 시간 20분을 서로에게 허락하라.',
+            '서운한 점은 추측하게 두지 말고 구체적인 문장으로 전달하라.',
+            '오늘 재판 결과를 핑계 삼아 먼저 따뜻한 간식을 건네며 화해하라.'
+          ]
+        };
+      }
+
+      const r = rebuttalText.trim();
+      let deltaMe = -5; // 기본: 설득력 있는 반론으로 내 과실 5% 감경
+      let lawyerLine1 = `신청인이 밝힌 「${r.slice(0, 22)}…」의 정황은 충분히 참작할 만합니다.`;
+      let lawyerLine2 = '다만 억울한 마음이 크더라도 감정적인 표현은 본래의 정당성을 흐릴 수 있습니다.';
+      let lawyerLine3 = `그럼에도 ${otherName} 측의 선행 과실이 뚜렷하므로 신청인의 과실을 일부 감경해야 합니다.`;
+
+      if (/전에도|반복|맨날|항상|여러\s*번|처음\s*아냐|참다|내가\s*산|내가\s*냈|미리\s*말/.test(r)) {
+        deltaMe = -10;
+        lawyerLine1 = '상습적인 반복이나 사전 배려가 있었다는 신청인의 추가 진술은 매우 결정적입니다.';
+        lawyerLine3 = `누적된 서운함이 폭발한 참작 사유가 명백하므로 ${otherName}의 책임을 더 무겁게 물어야 합니다.`;
+      } else if (/내\s*맘|어쩌라고|몰라|싫어|그냥|무조건\s*내\s*말이/.test(r)) {
+        deltaMe = 5;
+        lawyerLine1 = '신청인의 반론은 객관적 근거보다 일방적인 감정 주장에 가깝습니다.';
+        lawyerLine3 = '오히려 대화 타협 의지가 부족해 보이므로 신청인의 과실을 소폭 가산해야 합니다.';
+      }
+
+      const finalMe = Math.min(90, Math.max(5, prevMe + deltaMe));
+      const finalOther = 100 - finalMe;
+
+      return {
+        objection_lines: [lawyerLine1, lawyerLine2, lawyerLine3],
+        judge_lines: [
+          deltaMe < 0
+            ? '트리 변호사의 지적대로 신청인이 그간 참아온 사정이 법정 기록으로 확인되었도다.'
+            : '반론을 들어보니 신청인 또한 고집을 조금은 내려놓아야겠구나.',
+          `양측의 진술과 반론을 종합하여 과실 비율을 ${finalMe} 대 ${finalOther}(으)로 최종 조정하노라.`
+        ],
+        ratio: { me: finalMe, other: finalOther },
+        final_verdict: `${otherName} ${finalOther}, ${meName} ${finalMe}. 사정을 참작하여 최종 선고하노라!`,
+        advice: [
+          '약속이나 연락이 늦어질 때는 사전에 미리 한마디 남기는 규칙을 세우라.',
+          '서운함은 마음속에 쌓아 화석으로 만들지 말고 그날그날 대화로 풀라.',
+          "화가 날 때일수록 비꼬는 말 대신 '나는 이래서 서운했어'라고 말하라."
+        ]
+      };
+    }
+
+    async function callGeminiJson(userPrompt) {
+      const customKey = safeGetApiKey();
+      const effectiveKey = getEffectiveApiKey();
+
+      // 0) Netlify(/.netlify/functions/gemini) 또는 Firebase Hosting(/api/gemini) 서버리스 프록시 우선 호출
+      const isNetlifyHost = /netlify/.test(window.location.hostname);
+      const isFirebaseHost = /web\.app|firebaseapp\.com|localhost|127\.0\.0\.1/.test(window.location.hostname);
+      if (!customKey && !effectiveKey && (isNetlifyHost || isFirebaseHost)) {
+        try {
+          const proxyPath = isNetlifyHost ? "/.netlify/functions/gemini" : "/api/gemini";
+          const proxyUrl = `${window.location.origin}${proxyPath}`;
+          const netlifyRes = await fetch(proxyUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: SYSTEM_PROMPT,
+              prompt: userPrompt
+            })
+          });
+          if (netlifyRes.status === 429) throw new Error("RATE_LIMIT");
+          if (netlifyRes.ok) {
+            const netlifyData = await netlifyRes.json();
+            if (netlifyData?.error === "REFUSED") throw new Error("REFUSED");
+            if (netlifyData?.text) {
+              return extractJsonObject(netlifyData.text);
+            }
+          }
+        } catch (nErr) {
+          if (nErr.message === "RATE_LIMIT" || nErr.message === "REFUSED" || nErr.message === "PARSE_ERROR") {
+            throw nErr;
+          }
+        }
+      }
+
+      // 1) Gemini Canvas 표준 엔드포인트 및 최신 Flash 모델 순차 시도
+      const endpoints = [
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey || apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(effectiveKey)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(effectiveKey)}`
+      ];
+
+      let lastErr = null;
+      for (let i = 0; i < endpoints.length; i++) {
+        try {
+          const res = await fetch(endpoints[i], {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [{ text: SYSTEM_PROMPT }]
+              },
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: userPrompt }]
+                }
+              ],
+              generationConfig: {
+                responseMimeType: 'application/json',
+                temperature: 0.75
+              }
+            })
+          });
+
+          if (res.status === 429) {
+            throw new Error('RATE_LIMIT');
+          }
+          if (!res.ok) {
+            lastErr = new Error(`HTTP_${res.status}`);
+            continue;
+          }
+
+          const data = await res.json();
+          if (data?.promptFeedback?.blockReason) {
+            throw new Error('REFUSED');
+          }
+          const candidate = data?.candidates?.[0];
+          if (!candidate) {
+            throw new Error('OTHER');
+          }
+          if (
+            candidate.finishReason === 'SAFETY' ||
+            candidate.finishReason === 'PROHIBITED_CONTENT' ||
+            candidate.finishReason === 'BLOCKLIST'
+          ) {
+            throw new Error('REFUSED');
+          }
+
+          const text = candidate?.content?.parts?.map((p) => p.text || '').join('') || '';
+          return extractJsonObject(text);
+        } catch (err) {
+          lastErr = err;
+          if (
+            err.message === 'RATE_LIMIT' ||
+            err.message === 'REFUSED' ||
+            err.message === 'PARSE_ERROR'
+          ) {
+            throw err;
+          }
+        }
+      }
+
+      // 사용자가 직접 잘못된 API 키를 입력한 경우에는 오류 화면을 표시하고,
+      // 키가 주입되지 않은 오프라인/샌드박스 환경에서는 문맥 분석 엔진으로 폴백
+      if (customKey) {
+        throw lastErr || new Error('OTHER');
+      }
+      throw new Error('NO_KEY_ENV');
+    }
+
+    async function requestFirstVerdict() {
+      const trimmedStory = state.story.slice(0, 1500);
+      if (state.isDemo) {
+        await new Promise((r) => setTimeout(r, 1400));
+        return analyzeStoryLocally(state.meName, state.otherName, trimmedStory);
+      }
+
+      const prompt = `[1차 판결 요청]
+- 내 호칭: ${state.meName}
+- 상대 호칭: ${state.otherName}
+- 사연: ${trimmedStory}
+
+다음 JSON 형식으로만 응답하라:
+{
+  "case_title": "재치 있는 사건명, 12자 이내",
+  "lines": ["판사 대사 3개: 사건 요약 → 상대의 잘못 → 나의 잘못 순서"],
+  "ratio": { "me": 30, "other": 70 },
+  "verdict_line": "1차 판결 선고 한 문장, 호칭과 비율 포함, 45자 이내"
+}`;
+
+      try {
+        const raw = await callGeminiJson(prompt);
+        return sanitizeRound1Result(raw);
+      } catch (err) {
+        if (err.message === 'NO_KEY_ENV') {
+          await new Promise((r) => setTimeout(r, 1100));
+          return analyzeStoryLocally(state.meName, state.otherName, trimmedStory);
+        }
+        throw err;
+      }
+    }
+
+    async function requestFinalVerdict() {
+      const trimmedStory = state.story.slice(0, 1500);
+      const rebuttalText = state.acceptedFirstVerdict || !state.rebuttal.trim()
+        ? '신청인은 반론하지 않고 판결을 받아들였다'
+        : state.rebuttal.trim().slice(0, 400);
+
+      if (state.isDemo) {
+        await new Promise((r) => setTimeout(r, 1400));
+        return analyzeRebuttalLocally(
+          state.meName,
+          state.otherName,
+          trimmedStory,
+          state.firstResult,
+          state.rebuttal,
+          state.acceptedFirstVerdict
+        );
+      }
+
+      const firstRatioDesc = state.firstResult?.ratio
+        ? `${state.meName} ${state.firstResult.ratio.me}% : ${state.otherName} ${state.firstResult.ratio.other}%`
+        : '비율 판정 보류(안전 권고)';
+
+      const prompt = `[최종 판결 요청]
+- 내 호칭: ${state.meName}
+- 상대 호칭: ${state.otherName}
+- 사연: ${trimmedStory}
+- 1차 판결 사건명: ${state.firstResult?.case_title || state.caseTitle}
+- 1차 판결 과실 비율: ${firstRatioDesc}
+- 1차 판결 선고: ${state.firstResult?.verdict_line || ''}
+- 신청인의 반론: ${rebuttalText}
+
+규칙: 트리 변호사가 "이의 있음!"을 외치며 반론의 허점을 짚는다. 타당한 점은 인정. 설득력 있는 반론이면 신청인 과실을 낮추고, 반론이 오히려 잘못을 드러내면 높인다. 반론이 없으면 변호사는 판결 유지를 주장.
+
+다음 JSON 형식으로만 응답하라:
+{
+  "objection_lines": ["변호사 대사 3개, 첫 대사는 '이의 있음!'으로 시작"],
+  "judge_lines": ["판사의 최종 숙고 대사 2개"],
+  "ratio": { "me": 25, "other": 75 },
+  "final_verdict": "최종 판결 한 문장, 호칭과 비율 포함, 45자 이내",
+  "advice": ["화해와 재발 방지를 위한 구체적 실천 조언 3개, 각 50자 이내, 판사 말투"]
+}`;
+
+      try {
+        const raw = await callGeminiJson(prompt);
+        return sanitizeRound2Result(raw);
+      } catch (err) {
+        if (err.message === 'NO_KEY_ENV') {
+          await new Promise((r) => setTimeout(r, 1100));
+          return analyzeRebuttalLocally(
+            state.meName,
+            state.otherName,
+            trimmedStory,
+            state.firstResult,
+            state.rebuttal,
+            state.acceptedFirstVerdict
+          );
+        }
+        throw err;
+      }
+    }
+
+    function getErrorJudgeLine(err) {
+      const code = err?.message || '';
+      if (code === 'RATE_LIMIT') {
+        return '오늘 법정이 너무 붐비는구나. 잠시 뒤 다시 개정하라.';
+      }
+      if (code === 'REFUSED') {
+        return '이 사연은 본 법정에서 다루기 어렵노라. 다른 사연으로 접수하라.';
+      }
+      if (code === 'PARSE_ERROR') {
+        return '서기가 판결문을 엉망으로 받아 적었노라. 다시 한 번 심리하겠다.';
+      }
+      return '법정 사정으로 잠시 휴정하노라.';
+    }
+
+    function promptErrorChoice(err) {
+      stopThinkingDisplay();
+      state.sceneChar = 'judge';
+      renderCanvas();
+      const line = getErrorJudgeLine(err);
+      const drawer = document.getElementById('errorChoiceDrawer');
+      const textEl = document.getElementById('errorDialogText');
+      textEl.textContent = line;
+      drawer.classList.remove('hidden');
+
+      return new Promise((resolve) => {
+        const btnRetry = document.getElementById('btnRetryAi');
+        const btnDemo = document.getElementById('btnFallbackDemo');
+
+        const cleanup = () => {
+          drawer.classList.add('hidden');
+          btnRetry.onclick = null;
+          btnDemo.onclick = null;
+        };
+
+        btnRetry.onclick = (e) => {
+          e.stopPropagation();
+          cleanup();
+          resolve('retry');
+        };
+
+        btnDemo.onclick = (e) => {
+          e.stopPropagation();
+          cleanup();
+          state.isDemo = true;
+          updateHUD();
+          resolve('demo');
+        };
+      });
+    }
+
+    /*************************************************************************
+     * 7. 5단계 게임 진행 흐름 (State Machine)
+     *************************************************************************/
+    function hideAllOverlays() {
+      document.getElementById('titleOverlay').classList.add('hidden');
+      document.getElementById('intakeDrawer').classList.add('hidden');
+      document.getElementById('rebuttalChoiceDrawer').classList.add('hidden');
+      document.getElementById('rebuttalInputDrawer').classList.add('hidden');
+      document.getElementById('errorChoiceDrawer').classList.add('hidden');
+      document.getElementById('ratioBannerBackdrop').classList.add('hidden');
+      document.getElementById('objectionOverlay').classList.add('hidden');
+      document.getElementById('verdictSheetBackdrop').classList.add('hidden');
+      document.getElementById('reopenVerdictBar').classList.add('hidden');
+      state.bannerOpen = false;
+      state.bannerCleanup = null;
+    }
+
+    function splitRebuttalIntoLines(text) {
+      const cleaned = text.trim();
+      if (!cleaned) return ['…판결을 받아들이겠습니다.'];
+      const rawParts = cleaned
+        .split(/(?<=[.!?~…])\s+|\n+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      if (rawParts.length === 0) return [cleaned];
+      if (rawParts.length <= 3) return rawParts;
+
+      const chunkSize = Math.ceil(rawParts.length / 3);
+      const merged = [];
+      for (let i = 0; i < rawParts.length; i += chunkSize) {
+        merged.push(rawParts.slice(i, i + chunkSize).join(' '));
+      }
+      return merged.slice(0, 3);
+    }
+
+    function resetToTitle() {
+      state.sessionId++;
+      clearTimers();
+      hideAllOverlays();
+      state.step = 1;
+      state.caseNo = generateCaseNo();
+      state.caseTitle = '접수 대기';
+      state.firstResult = null;
+      state.finalResult = null;
+      state.secondCallPromise = null;
+      state.isDemo = false;
+      state.sceneChar = 'judge';
+      state.isTalking = false;
+      state.isThinking = false;
+      state.lawyerPointing = false;
+      state.gavelState = 0;
+      updateHUD();
+      setSpeaker('judge');
+      dialogText.textContent = '';
+      nextIndicator.classList.add('hidden');
+      document.getElementById('titleOverlay').classList.remove('hidden');
+      renderCanvas();
+    }
+
+    async function startStep1Intake(startAsDemo = false, clearFields = false) {
+      const currentSession = ++state.sessionId;
+      clearTimers();
+      hideAllOverlays();
+
+      state.isDemo = startAsDemo;
+      state.step = 1;
+      state.caseNo = generateCaseNo();
+      state.caseTitle = '접수 대기';
+      state.firstResult = null;
+      state.finalResult = null;
+      state.secondCallPromise = null;
+      updateHUD();
+
+      const inputStory = document.getElementById('inputStory');
+      const inputRebuttal = document.getElementById('inputRebuttal');
+      const btnClearExample = document.getElementById('btnClearExample');
+
+      if (clearFields) {
+        inputStory.value = '';
+        inputRebuttal.value = '';
+        btnClearExample.textContent = '예시 사연 다시 채우기';
+      } else if (!inputStory.value.trim()) {
+        inputStory.value = EXAMPLE_STORY;
+        btnClearExample.textContent = '예시 사연이 들어 있어요 · 지우고 새로 쓰기';
+      }
+      updateCharCount();
+
+      await strikeGavel(1, currentSession);
+      if (currentSession !== state.sessionId) return;
+
+      await showLine('judge', '정숙! 정숙하라! 지금부터 룡적재판을 개정하노라.');
+      if (currentSession !== state.sessionId) return;
+
+      await showLine(
+        'judge',
+        '신청인은 억울한 사연을 낱낱이 진술하라. 누가 누구에게 무엇을 했는지 빠짐없이!'
+      );
+      if (currentSession !== state.sessionId) return;
+
+      document.getElementById('intakeDrawer').classList.remove('hidden');
+      inputStory.focus();
+    }
+
+    async function startStep2FirstVerdict() {
+      const currentSession = state.sessionId;
+      document.getElementById('intakeDrawer').classList.add('hidden');
+      state.step = 2;
+      updateHUD();
+
+      let result = null;
+      while (!result && currentSession === state.sessionId) {
+        startThinkingDisplay('judge', '제미노 판사가 사건 기록을 심리하는 중');
+        try {
+          result = await requestFirstVerdict();
+        } catch (err) {
+          if (currentSession !== state.sessionId) return;
+          const choice = await promptErrorChoice(err);
+          if (currentSession !== state.sessionId) return;
+          if (choice === 'demo') {
+            state.isDemo = true;
+            updateHUD();
+          }
+        }
+      }
+      if (currentSession !== state.sessionId || !result) return;
+
+      stopThinkingDisplay();
+      state.firstResult = result;
+      state.caseTitle = result.case_title;
+      updateHUD();
+
+      await showLine(
+        'judge',
+        `본 사건은 「${state.caseTitle}」이로다. 사건번호 ${state.caseNo}, 심리를 시작하노라.`
+      );
+      if (currentSession !== state.sessionId) return;
+
+      await showLines('judge', result.lines);
+      if (currentSession !== state.sessionId) return;
+
+      await strikeGavel(1, currentSession);
+      if (currentSession !== state.sessionId) return;
+
+      if (result.ratio) {
+        await showRatioBanner('1차 판결', result.ratio, null);
+        if (currentSession !== state.sessionId) return;
+      }
+
+      await showLine('judge', result.verdict_line);
+      if (currentSession !== state.sessionId) return;
+
+      await startStep3Rebuttal();
+    }
+
+    async function startStep3Rebuttal() {
+      const currentSession = state.sessionId;
+      state.step = 3;
+      updateHUD();
+
+      await showLine('judge', `신청인 ${state.meName}, 이 판결에 반론이 있는가?`);
+      if (currentSession !== state.sessionId) return;
+
+      const choiceDrawer = document.getElementById('rebuttalChoiceDrawer');
+      document.getElementById('rebuttalChoiceTag').textContent = `${state.meName} (신청인)`;
+      choiceDrawer.classList.remove('hidden');
+    }
+
+    async function handleRebuttalSubmission(accepted) {
+      const currentSession = state.sessionId;
+      state.acceptedFirstVerdict = accepted;
+      document.getElementById('rebuttalChoiceDrawer').classList.add('hidden');
+      document.getElementById('rebuttalInputDrawer').classList.add('hidden');
+
+      state.secondCallPromise = requestFinalVerdict().then(
+        (res) => ({ ok: true, data: res }),
+        (err) => ({ ok: false, error: err })
+      );
+
+      state.sceneChar = 'client';
+      renderCanvas();
+
+      if (accepted) {
+        await showLine('client', '…판결을 받아들이겠습니다.');
+      } else {
+        const clientLines = splitRebuttalIntoLines(state.rebuttal);
+        await showLines('client', clientLines);
+      }
+      if (currentSession !== state.sessionId) return;
+
+      await startStep4Objection();
+    }
+
+    async function startStep4Objection() {
+      const currentSession = state.sessionId;
+      state.step = 4;
+      updateHUD();
+
+      state.sceneChar = 'lawyer';
+      renderCanvas();
+
+      let finalRes = null;
+      while (!finalRes && currentSession === state.sessionId) {
+        startThinkingDisplay('lawyer', '트리 변호사가 기록을 넘기는 중');
+        const outcome = await (state.secondCallPromise ||
+          requestFinalVerdict().then(
+            (res) => ({ ok: true, data: res }),
+            (err) => ({ ok: false, error: err })
+          ));
+        state.secondCallPromise = null;
+
+        if (currentSession !== state.sessionId) return;
+        if (outcome.ok) {
+          finalRes = outcome.data;
+        } else {
+          const choice = await promptErrorChoice(outcome.error);
+          if (currentSession !== state.sessionId) return;
+          if (choice === 'demo') {
+            state.isDemo = true;
+            updateHUD();
+          }
+        }
+      }
+      if (currentSession !== state.sessionId || !finalRes) return;
+
+      stopThinkingDisplay();
+      state.finalResult = finalRes;
+
+      await playObjectionCutIn();
+      if (currentSession !== state.sessionId) return;
+
+      await showLines('lawyer', finalRes.objection_lines, { pointingFirst: true });
+      if (currentSession !== state.sessionId) return;
+
+      await startStep5FinalVerdict();
+    }
+
+    async function startStep5FinalVerdict() {
+      const currentSession = state.sessionId;
+      state.step = 5;
+      updateHUD();
+
+      const finalRes = state.finalResult;
+      state.sceneChar = 'judge';
+      renderCanvas();
+
+      await showLines('judge', finalRes.judge_lines);
+      if (currentSession !== state.sessionId) return;
+
+      await showLine('judge', '그럼 최종 판결을 선고하노라!');
+      if (currentSession !== state.sessionId) return;
+
+      await strikeGavel(3, currentSession);
+      if (currentSession !== state.sessionId) return;
+
+      if (finalRes.ratio) {
+        await showRatioBanner('최종 판결', finalRes.ratio, state.firstResult?.ratio || null);
+        if (currentSession !== state.sessionId) return;
+      }
+
+      await showLine('judge', finalRes.final_verdict);
+      if (currentSession !== state.sessionId) return;
+
+      await showLine('judge', '판결문을 교부하노라. 이상, 폐정!');
+      if (currentSession !== state.sessionId) return;
+
+      openVerdictSheet();
+    }
+
+    function openVerdictSheet() {
+      const finalRes = state.finalResult;
+      if (!finalRes) return;
+
+      document.getElementById('verdictCaseText').textContent = `[${state.caseNo}] ${state.caseTitle}`;
+      document.getElementById('verdictMeText').textContent = state.meName;
+      document.getElementById('verdictOtherText').textContent = state.otherName;
+
+      if (finalRes.ratio) {
+        document.getElementById('verdictRatioText').textContent =
+          `${state.meName} ${finalRes.ratio.me} : ${finalRes.ratio.other} ${state.otherName}`;
+      } else {
+        document.getElementById('verdictRatioText').textContent = '과실 판정 중지 (안전 최우선)';
+      }
+
+      document.getElementById('verdictOrderText').textContent = finalRes.final_verdict;
+
+      const adviceContainer = document.getElementById('verdictAdviceList');
+      adviceContainer.innerHTML = '';
+      finalRes.advice.slice(0, 3).forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'verdict-advice-item';
+        const strong = document.createElement('strong');
+        strong.textContent = `제${idx + 1}조. `;
+        const span = document.createElement('span');
+        span.textContent = item;
+        div.appendChild(strong);
+        div.appendChild(span);
+        adviceContainer.appendChild(div);
+      });
+
+      document.getElementById('reopenVerdictBar').classList.add('hidden');
+      document.getElementById('verdictSheetBackdrop').classList.remove('hidden');
+      playChimeSound();
+    }
+
+    /*************************************************************************
+     * 8. 이벤트 리스너 및 초기화 (window.onload)
+     *************************************************************************/
+    const inputStoryEl = document.getElementById('inputStory');
+    const inputRebuttalEl = document.getElementById('inputRebuttal');
+    const storyCharCountEl = document.getElementById('storyCharCount');
+    const rebuttalCharCountEl = document.getElementById('rebuttalCharCount');
+
+    function updateCharCount() {
+      storyCharCountEl.textContent = `${inputStoryEl.value.length} / 800`;
+      rebuttalCharCountEl.textContent = `${inputRebuttalEl.value.length} / 400`;
+    }
+
+    inputStoryEl.value = EXAMPLE_STORY;
+    updateCharCount();
+
+    inputStoryEl.addEventListener('input', updateCharCount);
+    inputRebuttalEl.addEventListener('input', updateCharCount);
+
+    document.getElementById('btnClearExample').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const btn = e.currentTarget;
+      if (inputStoryEl.value.trim().length > 0) {
+        inputStoryEl.value = '';
+        btn.textContent = '예시 사연 다시 채우기';
+      } else {
+        inputStoryEl.value = EXAMPLE_STORY;
+        btn.textContent = '예시 사연이 들어 있어요 · 지우고 새로 쓰기';
+      }
+      updateCharCount();
+      inputStoryEl.focus();
+    });
+
+    document.getElementById('btnClearRebuttal').addEventListener('click', (e) => {
+      e.stopPropagation();
+      inputRebuttalEl.value = '';
+      updateCharCount();
+      inputRebuttalEl.focus();
+    });
+
+    document.getElementById('btnStartGame').addEventListener('click', (e) => {
+      e.stopPropagation();
+      ensureAudio();
+      startStep1Intake(false, false);
+    });
+
+    document.getElementById('btnStartDemo').addEventListener('click', (e) => {
+      e.stopPropagation();
+      ensureAudio();
+      startStep1Intake(true, false);
+    });
+
+    document.getElementById('btnSubmitStory').addEventListener('click', (e) => {
+      e.stopPropagation();
+      ensureAudio();
+      const meVal = document.getElementById('inputMeName').value.trim() || '나';
+      const otherVal = document.getElementById('inputOtherName').value.trim() || '남친';
+      const storyVal = inputStoryEl.value.trim();
+
+      if (!storyVal) {
+        inputStoryEl.placeholder = '사연을 한 줄 이상 입력해 주세요!';
+        inputStoryEl.focus();
+        return;
+      }
+
+      state.meName = meVal.slice(0, 6);
+      state.otherName = otherVal.slice(0, 6);
+      state.story = storyVal.slice(0, 800);
+      startStep2FirstVerdict();
+    });
+
+    document.getElementById('btnChooseObjection').addEventListener('click', (e) => {
+      e.stopPropagation();
+      ensureAudio();
+      document.getElementById('rebuttalChoiceDrawer').classList.add('hidden');
+      const rebDrawer = document.getElementById('rebuttalInputDrawer');
+      document.getElementById('rebuttalInputTag').textContent = `${state.meName} (신청인)`;
+
+      if (state.isDemo || state.story === EXAMPLE_STORY) {
+        if (!inputRebuttalEl.value.trim()) {
+          inputRebuttalEl.value = EXAMPLE_REBUTTAL;
+        }
+      }
+      updateCharCount();
+      rebDrawer.classList.remove('hidden');
+      inputRebuttalEl.focus();
+    });
+
+    document.getElementById('btnChooseAccept').addEventListener('click', (e) => {
+      e.stopPropagation();
+      ensureAudio();
+      state.rebuttal = '';
+      handleRebuttalSubmission(true);
+    });
+
+    document.getElementById('btnSubmitRebuttal').addEventListener('click', (e) => {
+      e.stopPropagation();
+      ensureAudio();
+      const rebVal = inputRebuttalEl.value.trim();
+      if (!rebVal) {
+        handleRebuttalSubmission(true);
+        return;
+      }
+      state.rebuttal = rebVal.slice(0, 400);
+      handleRebuttalSubmission(false);
+    });
+
+    let toastTimer = null;
+    function showCourtToast(message) {
+      const toastEl = document.getElementById('courtToast');
+      if (!toastEl) return;
+      toastEl.textContent = message;
+      toastEl.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toastEl.classList.add('hidden');
+      }, 2800);
+    }
+
+    function wrapCanvasLines(ctx2d, text, maxWidth) {
+      const words = String(text || '').split(' ');
+      const lines = [];
+      let current = '';
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        const testLine = current ? `${current} ${word}` : word;
+        if (ctx2d.measureText(testLine).width <= maxWidth) {
+          current = testLine;
+        } else {
+          if (current) lines.push(current);
+          // 단어 자체가 maxWidth보다 긴 경우 글자 단위로 분할
+          if (ctx2d.measureText(word).width > maxWidth) {
+            let charBuf = '';
+            for (const ch of word) {
+              if (ctx2d.measureText(charBuf + ch).width <= maxWidth) {
+                charBuf += ch;
+              } else {
+                if (charBuf) lines.push(charBuf);
+                charBuf = ch;
+              }
+            }
+            current = charBuf;
+          } else {
+            current = word;
+          }
+        }
+      }
+      if (current) lines.push(current);
+      return lines.length > 0 ? lines : [''];
+    }
+
+    function renderVerdictCardCanvas() {
+      const finalRes = state.finalResult || DEMO_ROUND_2;
+      const cw = 720;
+      const ch = 1020;
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = cw;
+      offCanvas.height = ch;
+      const c = offCanvas.getContext('2d');
+
+      const fontStack = '"Galmuri11", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif';
+
+      // 1) 밤하늘 배경 (#161221) 및 도트 장식
+      c.fillStyle = '#161221';
+      c.fillRect(0, 0, cw, ch);
+      c.fillStyle = '#241c33';
+      for (let x = 0; x < cw; x += 36) {
+        c.fillRect(x, 0, 18, ch);
+      }
+
+      // 2) 상단 타이틀 배너
+      c.fillStyle = '#e3a93b';
+      c.font = `bold 20px ${fontStack}`;
+      c.textAlign = 'center';
+      c.fillText('🦖 룡적재판 · DINO COURT 공식 판결문', cw / 2, 42);
+
+      // 3) 판결문 양피지 카드 (#f4ecd8)
+      const px = 44;
+      const py = 62;
+      const pw = cw - px * 2;
+      const ph = ch - py - 56;
+
+      // 금색 외곽선 -> 먹색 테두리 -> 양피지 바탕
+      c.fillStyle = '#e3a93b';
+      c.fillRect(px - 6, py - 6, pw + 12, ph + 12);
+      c.fillStyle = '#0f0c17';
+      c.fillRect(px - 3, py - 3, pw + 6, ph + 6);
+      c.fillStyle = '#f4ecd8';
+      c.fillRect(px, py, pw, ph);
+
+      // 4) "판 결 문" 헤더
+      let curY = py + 58;
+      c.fillStyle = '#0f0c17';
+      c.font = `bold 42px ${fontStack}`;
+      c.textAlign = 'center';
+      c.fillText('판   결   문', cw / 2, curY);
+
+      // 상단 구분선
+      curY += 24;
+      c.fillStyle = '#0f0c17';
+      c.fillRect(px + 28, curY, pw - 56, 3);
+
+      // 5) 사건 메타 정보 테이블
+      curY += 36;
+      const labelX = px + 36;
+      const valX = px + 178;
+      const metaRows = [
+        ['사   건', `[${state.caseNo}] ${state.caseTitle}`],
+        ['신 청 인', state.meName],
+        ['상 대 방', state.otherName],
+        [
+          '과실 비율',
+          finalRes.ratio
+            ? `${state.meName} ${finalRes.ratio.me}%  :  ${finalRes.ratio.other}% ${state.otherName}`
+            : '과실 판정 중지 (안전 최우선)'
+        ]
+      ];
+
+      metaRows.forEach(([label, val]) => {
+        c.textAlign = 'left';
+        c.fillStyle = '#4a3d33';
+        c.font = `bold 21px ${fontStack}`;
+        c.fillText(label, labelX, curY);
+
+        c.fillStyle = '#0f0c17';
+        c.font = `bold 21px ${fontStack}`;
+        const wrapped = wrapCanvasLines(c, val, pw - 210);
+        wrapped.forEach((line, idx) => {
+          c.fillText(line, valX, curY + idx * 28);
+        });
+        curY += Math.max(36, wrapped.length * 28 + 10);
+      });
+
+      // 과실 비율 게이지 바
+      if (finalRes.ratio) {
+        const barX = px + 36;
+        const barW = pw - 72;
+        const barH = 26;
+        c.fillStyle = '#0f0c17';
+        c.fillRect(barX - 2, curY - 2, barW + 4, barH + 4);
+        c.fillStyle = '#b39ae0';
+        c.fillRect(barX, curY, barW, barH);
+        const meW = Math.round((barW * finalRes.ratio.me) / 100);
+        c.fillStyle = '#d8343a';
+        c.fillRect(barX, curY, meW, barH);
+        c.fillStyle = '#0f0c17';
+        c.fillRect(barX + meW - 1, curY, 3, barH);
+        curY += barH + 20;
+      }
+
+      c.fillStyle = '#0f0c17';
+      c.fillRect(px + 28, curY, pw - 56, 3);
+
+      // 6) 주 문 섹션
+      curY += 22;
+      c.fillStyle = 'rgba(15, 12, 23, 0.09)';
+      c.fillRect(px + 28, curY, pw - 56, 36);
+      c.fillStyle = '#0f0c17';
+      c.font = `bold 22px ${fontStack}`;
+      c.textAlign = 'center';
+      c.fillText('주     문', cw / 2, curY + 25);
+
+      curY += 66;
+      c.fillStyle = '#8f1d22';
+      c.font = `bold 24px ${fontStack}`;
+      const orderLines = wrapCanvasLines(c, finalRes.final_verdict, pw - 72);
+      orderLines.forEach((line) => {
+        c.fillText(line, cw / 2, curY);
+        curY += 34;
+      });
+
+      // 7) 화 해 명 령 섹션
+      curY += 10;
+      c.fillStyle = 'rgba(15, 12, 23, 0.09)';
+      c.fillRect(px + 28, curY, pw - 56, 36);
+      c.fillStyle = '#0f0c17';
+      c.font = `bold 22px ${fontStack}`;
+      c.textAlign = 'center';
+      c.fillText('화  해  명  령', cw / 2, curY + 25);
+
+      curY += 60;
+      c.textAlign = 'left';
+      const advices = (finalRes.advice || []).slice(0, 3);
+      advices.forEach((item, idx) => {
+        const prefix = `제${idx + 1}조. `;
+        c.font = `bold 20px ${fontStack}`;
+        c.fillStyle = '#5b3817';
+        c.fillText(prefix, px + 36, curY);
+        const prefixW = c.measureText(prefix).width;
+
+        c.fillStyle = '#0f0c17';
+        c.font = `20px ${fontStack}`;
+        const itemLines = wrapCanvasLines(c, item, pw - 72 - prefixW);
+        itemLines.forEach((line, lIdx) => {
+          c.fillText(line, px + 36 + prefixW, curY + lIdx * 28);
+        });
+        curY += Math.max(34, itemLines.length * 28 + 12);
+      });
+
+      // 8) 하단 서명 및 붉은 '룡' 직인
+      const signY = py + ph - 48;
+      c.strokeStyle = 'rgba(15, 12, 23, 0.35)';
+      c.lineWidth = 2;
+      c.setLineDash([6, 6]);
+      c.beginPath();
+      c.moveTo(px + 28, signY - 46);
+      c.lineTo(px + pw - 28, signY - 46);
+      c.stroke();
+      c.setLineDash([]);
+
+      c.textAlign = 'right';
+      c.fillStyle = '#0f0c17';
+      c.font = `bold 24px ${fontStack}`;
+      c.fillText('룡적법원 재판장 제미노', px + pw - 96, signY);
+
+      // 붉은 도장 '룡'
+      c.save();
+      c.translate(px + pw - 54, signY - 8);
+      c.rotate((-8 * Math.PI) / 180);
+      c.fillStyle = 'rgba(216, 52, 58, 0.1)';
+      c.fillRect(-26, -26, 52, 52);
+      c.strokeStyle = '#d8343a';
+      c.lineWidth = 3.5;
+      c.strokeRect(-26, -26, 52, 52);
+      c.fillStyle = '#d8343a';
+      c.font = `bold 30px ${fontStack}`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText('룡', 0, 2);
+      c.restore();
+
+      // 9) 최하단 캡션
+      c.textAlign = 'center';
+      c.fillStyle = 'rgba(244, 236, 216, 0.78)';
+      c.font = `16px ${fontStack}`;
+      c.fillText('억울한 사랑싸움 과실 판결 게임 · 룡적재판 (DINO COURT)', cw / 2, ch - 20);
+
+      return offCanvas;
+    }
+
+    let lastVerdictCanvas = null;
+    let lastVerdictDataUrl = '';
+    let lastVerdictFileName = '룡적재판_판결문.png';
+
+    function generateVerdictCardDataUrl() {
+      const offCanvas = renderVerdictCardCanvas();
+      lastVerdictCanvas = offCanvas;
+      lastVerdictDataUrl = offCanvas.toDataURL('image/png');
+      lastVerdictFileName = `룡적재판_판결문_${state.caseNo}.png`;
+      return lastVerdictDataUrl;
+    }
+
+    function canvasToPngBlob(canvasEl) {
+      return new Promise((resolve) => {
+        if (!canvasEl) {
+          resolve(null);
+          return;
+        }
+        if (canvasEl.toBlob) {
+          canvasEl.toBlob((blob) => resolve(blob), 'image/png');
+        } else {
+          try {
+            const dataUrl = canvasEl.toDataURL('image/png');
+            const byteString = atob(dataUrl.split(',')[1]);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i);
+            }
+            resolve(new Blob([ab], { type: 'image/png' }));
+          } catch (e) {
+            resolve(null);
+          }
+        }
+      });
+    }
+
+    // 메인 창 네비게이션/리로드가 절대 발생하지 않도록 격리된 숨김 iframe 안에서만 Blob 다운로드를 시도
+    function downloadBlobViaIsolatedIframe(blob, fileName) {
+      if (!blob) return false;
+      try {
+        const blobUrl = URL.createObjectURL(blob);
+        let dlFrame = document.getElementById('hiddenDownloadIframe');
+        if (!dlFrame) {
+          dlFrame = document.createElement('iframe');
+          dlFrame.id = 'hiddenDownloadIframe';
+          dlFrame.style.display = 'none';
+          dlFrame.style.width = '0';
+          dlFrame.style.height = '0';
+          dlFrame.style.border = '0';
+          document.body.appendChild(dlFrame);
+        }
+        const frameDoc = dlFrame.contentDocument || (dlFrame.contentWindow && dlFrame.contentWindow.document);
+        if (frameDoc && frameDoc.body) {
+          const a = frameDoc.createElement('a');
+          a.href = blobUrl;
+          a.download = fileName;
+          a.addEventListener('click', (ev) => ev.stopPropagation());
+          frameDoc.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 8000);
+          return true;
+        }
+        URL.revokeObjectURL(blobUrl);
+      } catch (e) {}
+      return false;
+    }
+
+    async function copyVerdictImageToClipboard(silent = false) {
+      ensureAudio();
+      if (!lastVerdictCanvas) generateVerdictCardDataUrl();
+      const blob = await canvasToPngBlob(lastVerdictCanvas);
+      if (blob && navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          if (!silent) {
+            playChimeSound();
+            showCourtToast('📋 판결문 이미지가 복사되었어룡! (Ctrl+V 붙여넣기)');
+          }
+          return true;
+        } catch (e) {}
+      }
+      if (!silent) {
+        showCourtToast('📸 위 이미지를 길게 누르거나 우클릭해 저장해 주세요룡!');
+      }
+      return false;
+    }
+
+    async function triggerDirectDeviceSave() {
+      ensureAudio();
+      playChimeSound();
+      if (!lastVerdictCanvas) generateVerdictCardDataUrl();
+      const blob = await canvasToPngBlob(lastVerdictCanvas);
+      const fileName = lastVerdictFileName || `룡적재판_판결문_${state.caseNo}.png`;
+
+      // 1) 모바일 네이티브 파일 공유/사진함 저장 (iOS/Android)
+      if (blob && navigator.canShare && navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || '')) {
+        try {
+          const file = new File([blob], fileName, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: '룡적재판 최종 판결문'
+            });
+            showCourtToast('📥 사진함 저장/공유 창을 열었어룡!');
+            return;
+          }
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+        }
+      }
+
+      // 2) 데스크톱 File System Access API (지원 브라우저)
+      if (blob && typeof window.showSaveFilePicker === 'function') {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{ description: 'PNG 이미지', accept: { 'image/png': ['.png'] } }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          showCourtToast('📥 판결문 이미지를 기기에 저장했어룡!');
+          return;
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+        }
+      }
+
+      // 3) 메인 창 리로드가 없는 격리된 숨김 iframe Blob 다운로드 + 클립보드 자동 복사
+      const downloaded = downloadBlobViaIsolatedIframe(blob, fileName);
+      const copied = await copyVerdictImageToClipboard(true);
+      if (downloaded && copied) {
+        showCourtToast('📥 파일 저장 요청 & 클립보드 이미지 복사 완료!');
+      } else if (copied) {
+        showCourtToast('📋 이미지 복사 완료! 우클릭/길게 눌러 파일 저장도 가능해룡!');
+      } else {
+        showCourtToast('📸 위 판결문 이미지를 길게 누르거나 우클릭해 저장해 주세요룡!');
+      }
+    }
+
+    async function saveVerdictAsImage() {
+      ensureAudio();
+      playChimeSound();
+      if (typeof gtag === 'function') {
+        try {
+          gtag('event', 'save_verdict_image', {
+            case_no: state.caseNo,
+            case_title: state.caseTitle
+          });
+        } catch (e) {}
+      }
+
+      const dataUrl = generateVerdictCardDataUrl();
+      const previewImg = document.getElementById('verdictImgPreview');
+      const modalBackdrop = document.getElementById('verdictImgModalBackdrop');
+
+      if (previewImg) previewImg.src = dataUrl;
+      if (modalBackdrop) {
+        modalBackdrop.classList.remove('hidden');
+      }
+
+      // 메인 창 리로드를 유발하는 <a> 클릭 없이 안전하게 모달 표시 + 클립보드 자동 복사 수행
+      const copied = await copyVerdictImageToClipboard(true);
+      if (copied) {
+        showCourtToast('📸 판결문 생성 & 클립보드 복사 완료! 길게 눌러 저장도 돼룡!');
+      } else {
+        showCourtToast('📸 판결문 이미지 완성! 길게 누르거나 우클릭해 저장하세요룡!');
+      }
+    }
+
+    function copyTextFallback(text) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function shareDinoCourtLink() {
+      ensureAudio();
+      playChimeSound();
+      if (typeof gtag === 'function') {
+        try {
+          gtag('event', 'share_game_link', {
+            case_no: state.caseNo,
+            case_title: state.caseTitle
+          });
+        } catch (e) {}
+      }
+
+      const finalRes = state.finalResult || DEMO_ROUND_2;
+      const ratioLine = finalRes.ratio
+        ? `${state.meName} ${finalRes.ratio.me}% vs ${state.otherName} ${finalRes.ratio.other}%`
+        : '안전 최우선 보호 판결';
+
+      let shareUrl = '';
+      try {
+        const href = window.location.href || '';
+        if (href.startsWith('http') && !href.includes('scf.usercontent.goog')) {
+          shareUrl = href;
+        }
+      } catch (e) {}
+
+      const shareTitle = `🦖 룡적재판 판결문 - [${state.caseTitle}]`;
+      const shareText =
+        `🦖 [룡적재판] 「${state.caseTitle}」 최종 판결!
+` +
+        `⚖️ 과실 비율: ${ratioLine}
+` +
+        `📜 주문: "${finalRes.final_verdict}"
+` +
+        `너네 커플도 공룡 법정에서 과실 비율 재판해봐룡!`;
+      const fullClipboardText = shareUrl ? `${shareText}
+👉 ${shareUrl}` : shareText;
+
+      if (navigator.share) {
+        try {
+          const sharePayload = { title: shareTitle, text: shareText };
+          if (shareUrl) sharePayload.url = shareUrl;
+          await navigator.share(sharePayload);
+          showCourtToast('🔗 룡적재판 공유 창을 열었어룡!');
+          return;
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+        }
+      }
+
+      let copied = false;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(fullClipboardText);
+          copied = true;
+        } catch (e) {
+          copied = copyTextFallback(fullClipboardText);
+        }
+      } else {
+        copied = copyTextFallback(fullClipboardText);
+      }
+
+      if (copied) {
+        showCourtToast('📋 판결 결과와 룡적재판 소개가 복사되었어룡!');
+      } else {
+        showCourtToast('🔗 공유 문구를 준비했어룡!');
+      }
+    }
+
+    document.getElementById('btnSaveVerdictImg').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      saveVerdictAsImage();
+    });
+
+    document.getElementById('btnDownloadVerdictLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerDirectDeviceSave();
+    });
+
+    document.getElementById('btnCopyVerdictImg').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      copyVerdictImageToClipboard(false);
+    });
+
+    document.getElementById('btnShareGameLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      shareDinoCourtLink();
+    });
+
+    document.getElementById('btnCloseVerdictImgModal').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('verdictImgModalBackdrop').classList.add('hidden');
+    });
+
+    document.getElementById('btnCloseVerdictImgBottom').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('verdictImgModalBackdrop').classList.add('hidden');
+    });
+
+    document.getElementById('btnCloseVerdict').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('verdictSheetBackdrop').classList.add('hidden');
+      document.getElementById('reopenVerdictBar').classList.remove('hidden');
+    });
+
+    document.getElementById('btnReopenVerdict').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openVerdictSheet();
+    });
+
+    document.getElementById('btnNewCase').addEventListener('click', (e) => {
+      e.stopPropagation();
+      ensureAudio();
+      startStep1Intake(false, true);
+    });
+
+    gameFrame.addEventListener('click', (e) => {
+      ensureAudio();
+      const interactive = e.target.closest(
+        'button, a, input, textarea, .form-drawer, .verdict-sheet-backdrop, .verdict-img-modal-backdrop, .title-overlay, .api-modal-backdrop'
+      );
+      if (interactive) return;
+      advanceDialogue();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      const tag = (document.activeElement && document.activeElement.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        ensureAudio();
+        advanceDialogue();
+      }
+    });
+
+    const btnAutoPlay = document.getElementById('btnAutoPlay');
+    const btnSoundToggle = document.getElementById('btnSoundToggle');
+    const btnResetGame = document.getElementById('btnResetGame');
+
+    btnAutoPlay.addEventListener('click', () => {
+      ensureAudio();
+      state.autoPlay = !state.autoPlay;
+      btnAutoPlay.textContent = `자동 넘김: ${state.autoPlay ? '켬' : '끔'}`;
+      btnAutoPlay.classList.toggle('active', state.autoPlay);
+
+      if (state.autoPlay) {
+        if (state.bannerOpen && state.bannerCleanup) {
+          clearTimeout(state.autoTimer);
+          state.autoTimer = setTimeout(state.bannerCleanup, 2000);
+        } else if (!state.isTyping && state.waitingForClick) {
+          clearTimeout(state.autoTimer);
+          state.autoTimer = setTimeout(advanceDialogue, 900);
+        }
+      } else {
+        clearTimeout(state.autoTimer);
+      }
+    });
+
+    btnSoundToggle.addEventListener('click', () => {
+      state.soundOn = !state.soundOn;
+      btnSoundToggle.textContent = `소리: ${state.soundOn ? '켬' : '끔'}`;
+      btnSoundToggle.classList.toggle('active', state.soundOn);
+      if (state.soundOn) ensureAudio();
+    });
+
+    btnResetGame.addEventListener('click', () => {
+      ensureAudio();
+      resetToTitle();
+    });
+
+    const apiModalBackdrop = document.getElementById('apiModalBackdrop');
+    const inputApiKey = document.getElementById('inputApiKey');
+
+    function openApiModal() {
+      inputApiKey.value = safeGetApiKey();
+      apiModalBackdrop.classList.remove('hidden');
+      inputApiKey.focus();
+    }
+
+    document.getElementById('btnApiConfig').addEventListener('click', openApiModal);
+    document.getElementById('btnOpenApiFromError').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openApiModal();
+    });
+
+    document.getElementById('btnSaveApiKey').addEventListener('click', () => {
+      const val = inputApiKey.value.trim();
+      safeSetApiKey(val);
+      apiModalBackdrop.classList.add('hidden');
+    });
+
+    document.getElementById('btnCloseApiModal').addEventListener('click', () => {
+      apiModalBackdrop.classList.add('hidden');
+    });
+
+    let mouthInterval = null;
+    let blinkInterval = null;
+    let bobInterval = null;
+
+    function startAnimationLoops() {
+      if (mouthInterval) clearInterval(mouthInterval);
+      if (blinkInterval) clearInterval(blinkInterval);
+      if (bobInterval) clearInterval(bobInterval);
+
+      mouthInterval = setInterval(() => {
+        if (state.isTalking && !state.reducedMotion) {
+          state.mouthOpen = !state.mouthOpen;
+        } else {
+          state.mouthOpen = false;
+        }
+        renderCanvas();
+      }, 130);
+
+      blinkInterval = setInterval(() => {
+        if (state.reducedMotion || state.isThinking) return;
+        state.isBlinking = true;
+        renderCanvas();
+        setTimeout(() => {
+          state.isBlinking = false;
+          renderCanvas();
+        }, 160);
+      }, 3600);
+
+      bobInterval = setInterval(() => {
+        if (state.reducedMotion) {
+          state.idleBob = 0;
+          return;
+        }
+        state.idleBob = state.idleBob === 0 ? 1 : 0;
+        renderCanvas();
+      }, 650);
+    }
+
+    window.addEventListener('resize', () => {
+      renderCanvas();
+    });
+
+    window.onload = () => {
+      updateHUD();
+      renderCanvas();
+      startAnimationLoops();
+    };
+  </script>
+</body>
+</html>
